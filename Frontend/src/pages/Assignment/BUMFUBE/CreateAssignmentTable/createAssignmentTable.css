@@ -1,0 +1,189 @@
+/* Main container */
+.assignment-container {
+  width: 100%;
+  max-width: 1350px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: white;
+}
+
+/* Button container */
+.assignment-button-wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.assignment-cancel-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  gap: 10px;
+  margin: 2px;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.assignment-cancel-button:hover {
+  background-color: #0000FF;
+  color: #fff;
+  transform: scale(1.05);
+  border: 2px solid #0000FF;
+}
+
+.assignment-save-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  gap: 10px;
+  margin: 2px;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.assignment-save-button:hover {
+  background-color: #0000FF;
+  color: #fff;
+  transform: scale(1.05);
+  border: 2px solid #0000FF;
+}
+
+/* Table wrapper */
+.assignment-table-wrapper {
+  margin-bottom: 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Scroll container */
+.table-scroll-container {
+  overflow-x: auto;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* Table styles */
+.assignment-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.assignment-table th,
+.assignment-table td {
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.assignment-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Input and select styles */
+.assignment-code-dropdown,
+.assignment-desc-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+/* Action buttons container */
+.table-action-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.add-row-button, .remove-row-button {
+  /* background-color: #3b82f6; */
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-row-button {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+}
+
+.remove-row-button:disabled {
+  background-color: transparent;
+  border: 2px solid transparent;
+  color: transparent;
+  cursor: not-allowed;
+}
+
+.add-row-button:hover {
+  background-color: #0000FF;
+  color: #fff;
+  transform: scale(1.05);
+  border: 2px solid #0000FF;
+}
+
+.remove-row-button:not(:disabled):hover {
+  background-color: #dc2626;
+  /* background-color: #0000FF; */
+  color: #fff;
+  transform: scale(1.05);
+  border: 2px solid #dc2626;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .assignment-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .assignment-button-wrapper {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .assignment-cancel-button,
+  .assignment-save-button {
+    width: 100%;
+  }
+}

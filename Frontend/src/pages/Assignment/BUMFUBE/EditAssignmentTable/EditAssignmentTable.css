@@ -1,0 +1,132 @@
+/* Main container styles */
+.business-entity-container {
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.business-entity-panel {
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Button styles */
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.left-buttons{
+  display: flex;
+  gap: 20px; /* Ensures at least 20px between buttons */
+  margin-bottom: 16px;
+}
+
+button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 8px;
+  transition: background-color 0.2s;
+}
+
+button:last-child {
+  margin-right: 0;
+}
+
+.edit-button, .cancel-button {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.save-button {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-button:hover,
+.save-button:hover,
+.cancel-button:hover{
+  background-color: #0000FF; /* Blue background on hover */
+  color: #fff; /* White text on hover */
+  transform: scale(1.05);
+  border: 2px solid #0000FF; /* Optional: blue border for visibility */
+
+}
+button:hover {
+  opacity: 0.9;
+}
+
+/* Table styles */
+.table-container {
+  overflow-x: auto;
+}
+
+.entity-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.entity-table th, .entity-table td {
+  border: 1px solid #d1d5db;
+  padding: 8px;
+  text-align: left;
+}
+
+.entity-table th {
+  background-color: #fecaca;
+  font-weight: 600;
+}
+
+.entity-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* Input styles */
+.editable-input, .readonly-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.readonly-input {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+/* Dropdown styles */
+.editable-input {
+  appearance: none;
+  /* background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); */
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .button-row {
+    flex-direction: column;
+  }
+  
+  .left-buttons, .right-buttons {
+    margin-bottom: 8px;
+  }
+}

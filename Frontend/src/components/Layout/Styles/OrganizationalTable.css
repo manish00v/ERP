@@ -1,0 +1,107 @@
+/* Main container */
+.organizational-container-table {
+  width: 100%;
+  max-width: 1410px;
+  margin: 0 auto;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  background-color: white;
+}
+
+/* Top navigation */
+.organizational__top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Table styles */
+.organizational__table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 15px;
+  margin-top: 50px;
+}
+
+.organizational-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.organizational-table__header,
+.organizational-table__cell {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  border: none;
+}
+
+.organizational-table__header {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  font-size: 1.1rem;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  color: #0d0c0c9d;
+}
+
+.organizational-table__row {
+  border: none;
+}
+
+.organizational-table__row--body {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.organizational-table__row--body:last-child {
+  border-bottom: none;
+}
+
+.organizational-table__row--body:hover {
+  background-color: #f9f9f9;
+}
+
+.organizational-table__code-link {
+  color: #0066cc;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.organizational-table__code-link:hover {
+  text-decoration: underline;
+  color: #004499;
+}
+
+/* Status messages */
+.organizational__loading-message {
+  text-align: center;
+  padding: 16px;
+}
+
+.organizational__error-message {
+  text-align: center;
+  padding: 16px;
+  color: #e53e3e;
+}
+
+/* Instruction area */
+.organizational__instruction-box {
+  margin-top: 25px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.organizational__arrow-icon {
+  transform: rotate(270deg);
+  margin-top: 18px;
+  font-size: 34px;
+  font-weight: bold;
+}
+
+.organizational__instruction-text {
+  margin-left: 16px;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.4;
+}

@@ -1,0 +1,64 @@
+/* Parent container must be positioned relative (if not already) */
+.parent-container {
+    position: relative; /* Required for absolute positioning inside */
+    min-height: 100vh;  /* Ensures parent takes full viewport height */
+}
+
+/* General styling for the navbar (now positioned at bottom-right of parent) */
+/* Updated navbar positioned at the top-right of the parent */
+.content-area-navbarrr {
+    position: absolute;
+    top:1px;      /* 20px from the top */
+    left: 100px;   /* 1000px from the left */
+    height: 60px;
+    display: flex;
+    margin-left: 2rem;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 30px;
+    box-sizing: border-box;
+}
+
+
+
+/* Button styling (unchanged) */
+.icon-button-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 2px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    width: 80px;
+}
+
+.icon-button-header:hover {
+    background-color: #0000FF; /* Blue background on hover */
+    color: #fff; /* White text on hover */
+    transform: scale(1.05);
+    border: 1px solid #0000FF; /* Optional: blue border for visibility */
+}
+
+/* Icon styling (unchanged) */
+.icon-button-header i {
+    font-size: 1.2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .content-area-navbarrr {
+        width: 80px;
+        height: 80px;
+    }
+    .icon-button-header {
+        width: 100%;
+    }
+}

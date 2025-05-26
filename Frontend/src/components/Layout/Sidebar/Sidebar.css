@@ -1,0 +1,280 @@
+/* Sidebar Container */
+.sidebar {
+  width: 17rem;
+  height: 100vh;
+  background-color: #21263c;
+  padding: 15px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  color: white;
+  border-right: 2px solid #ddd;
+  transition: 0.3s ease-in-out;
+  overflow-y: auto;
+  padding-bottom: 20px;
+  z-index: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Logo Container */
+.navbar-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 20px 0;
+  border-bottom: 1px solid #3a4058;
+  margin-bottom: 15px;
+}
+
+.navbar-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.navbar-logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+/* Home Button */
+.home-button-icon-sidebar {
+  /* background-color: #1e395b; */
+  left: 10px;
+  display: flex;
+  padding: 8px;
+  text-align: start;
+  /* border-bottom: 1px solid #3a4058; */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.home-button-icon-sidebar {
+  background: transparent !important; /* Force remove any background */
+  border: none;
+  color: white;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+
+/* Fix for home button with icon */
+.home-button-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+
+.home-button-sidebar:hover {
+  background-color: #2e496b;
+}
+.home-button-sidebar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.home-button-sidebar i {
+  color: white;
+  font-size: 16px;
+}
+
+.home-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  text-decoration: none;
+}
+.home-button-sidebar:hover {
+  background-color: #2e496b;
+}
+
+.home-button-sidebar.active {
+  background-color: #262263;
+}
+
+.home-button-sidebar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  display: block;
+}
+
+.home-button-sidebar i {
+  margin-right: 8px;
+}
+
+
+/* Search Bar */
+
+/* Search Bar */
+.ssearch-container {
+  position: relative;
+  width: 100%;
+  /* border: transparent;
+  background: transparent; */
+}
+
+.ssearch-input {
+  width: 100%;
+  padding: 10px;
+  padding-left: 40px;
+  border: 1px solid #171e26; 
+  border-radius: 5px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.ssearch-button {
+  position: absolute;
+  left: 175px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: transparent;
+  border: none;
+  color: #fffffffb;
+  cursor: pointer;
+  font-size: 1rem;
+}
+/* Main Menu */
+
+
+.menu-left {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 12px; /* Space between menu items */
+
+}
+
+/* Menu Buttons */
+.menu-button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  font-size: 16px;
+  gap: 12px; /* Fix for issue 1: space between icon and text */
+}
+
+/* Child menu container */
+.dropdown-menu {
+  padding: 0;
+  margin: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.dropdown-menu li {
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+/* Child menu links */
+.dropdown-menu li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px 10px 40px; /* Indent child items */
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+
+}
+
+/* Fix for issue 2: Parent won't hover when child is hovered */
+.menu-item:hover > .menu-button:not(:has(+ .dropdown-menu li:hover)) {
+  background-color: #3a4058;
+}
+
+/* Child hover - only affects child */
+.dropdown-menu li:hover {
+  background-color: #3a4058;
+  border-radius: 8px;
+
+}
+
+/* Fix for issue 3: Keep child text visible when active */
+.dropdown-menu li a.active-child {
+  color: #4a90e2 !important;
+  background-color: transparent !important; /* Remove bg color */
+}
+
+.dropdown-menu li a.active-child i {
+  color: #4a90e2 !important;
+}
+
+/* Parent active state (when child is selected) */
+.menu-item.active-menu-parent > .menu-button {
+  color: #4a90e2;
+}
+
+.menu-item.active-menu-parent > .menu-button i {
+  color: #4a90e2;
+}
+
+/* Fix for issue 4: Reset parent color when another item is selected */
+.menu-item:not(.active-menu-parent) > .menu-button {
+  color: white;
+}
+
+.menu-item:not(.active-menu-parent) > .menu-button i {
+  color: white;
+}
+
+
+/* Add these new styles to your existing CSS */
+.menu-button-container {
+  width: 100%;
+}
+
+.menu-button-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.menu-button-link:hover {
+  background-color: #3a4058;
+}
+
+.menu-item.active-menu-parent .menu-button-link {
+  color: #4a90e2;
+}
+
+.menu-item.active-menu-parent .menu-button-link i {
+  color: #4a90e2;
+}

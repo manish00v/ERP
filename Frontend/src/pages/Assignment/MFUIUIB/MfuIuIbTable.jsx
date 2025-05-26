@@ -1,0 +1,120 @@
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from 'react-router-dom';
+import '../../../components/Layout/Styles/OrganizationalTable.css';
+import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
+
+const MfuIuIbTable = () => {
+  const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  // Mock data for MFU-IU-IB assignments
+  const mockData = [
+    { id: 1, mfuCode: 'MFU01', inventoryUnitCode: 'IU01', inventoryBayCode: 'IB01' },
+    { id: 2, mfuCode: 'MFU02', inventoryUnitCode: 'IU02', inventoryBayCode: 'IB02' },
+    { id: 3, mfuCode: 'MFU03', inventoryUnitCode: 'IU03', inventoryBayCode: 'IB03' },
+  ];
+
+  useEffect(() => {
+    setPageTitle('MFU - Inventory Unit - Inventory Bay');
+    setNewButtonLink('/createMfuIuIbAssignment');
+
+    return () => {
+      setPageTitle('');
+      setNewButtonLink(null);
+    };
+  }, [setPageTitle, setNewButtonLink]);
+
+  // Simulate data loading with search
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Simulate API call with search term
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setIsLoading(false);
+      } catch (err) {
+        setError('Failed to load data');
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleCodeClick = (code) => {
+    navigate(`/editMfuIuIbAssignment`);
+  };
+
+  return (
+    <div className="organizational-container-table">
+
+      {/* Assignment Table */}
+      <div className="organizational__table-wrapper">
+        <table className="organizational-table">
+          <thead>
+            <tr>
+              <th className="organizational-table__header">MFU Code</th>
+              <th className="organizational-table__header">Inventory Unit Code</th>
+              <th className="organizational-table__header">Inventory Bay Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan="3" className="organizational__loading-message">Loading...</td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="3" className="organizational__error-message">
+                  Error: {error}
+                </td>
+              </tr>
+            ) : mockData.length > 0 ? (
+              mockData.map((entity) => (
+                <tr 
+                  key={entity.id} 
+                  className="organizational-table__row organizational-table__row--body"
+                >
+                  <td className="organizational-table__cell">
+                    <span 
+                      className="organizational-table__code-link"
+                      onClick={() => handleCodeClick(entity.mfuCode)}
+                    >
+                      {entity.mfuCode}
+                    </span>
+                  </td>
+                  <td className="organizational-table__cell">
+                    <span 
+                      className="organizational-table__code-link"
+                      onClick={() => handleCodeClick(entity.inventoryUnitCode)}
+                    >
+                      {entity.inventoryUnitCode}
+                    </span>
+                  </td>
+                  <td className="organizational-table__cell">
+                    <span 
+                      className="organizational-table__code-link"
+                      onClick={() => handleCodeClick(entity.inventoryBayCode)}
+                    >
+                      {entity.inventoryBayCode}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="3" className="organizational__no-data-message">
+                  {searchTerm ? 'No matching records found' : 'No assignments found'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default MfuIuIbTable;

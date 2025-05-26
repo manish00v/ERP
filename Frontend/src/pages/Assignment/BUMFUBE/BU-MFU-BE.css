@@ -1,0 +1,148 @@
+/* BusinessEntitySearch.css */
+
+.container {
+  width: 100%;
+  max-width: 1350px;
+  margin: 0 auto;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  background-color: white;
+  }
+  
+  /* Header styles */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  
+  
+
+
+
+  .back-button {
+    background-color: #133e87;  
+    padding: 8px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  
+  .back-icon {
+    margin-right: 5px;
+  }
+
+  
+  .close-button {
+    background-color: #e53e3e; 
+    color: white;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  
+  .new-badge {
+    background-color: #133e87;    
+    padding: 8px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  /* Search bar styles */
+  .search-container {
+    position: relative;
+    margin-bottom: 25px;
+  }
+  
+  .search-input-wrapper {
+    position: relative;
+    width: 25%; 
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px;
+    padding-left: 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    background-color: #fffeeb;
+    box-sizing: border-box;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 280px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  /* Table styles */
+  .table-container {
+    overflow-x: auto;
+    
+  }
+  
+  .entity-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .entity-table th,
+  .entity-table td {
+    /* border: 1px solid #d1d5db; */
+    /* padding: 12px; */
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 14px;
+    height: 36px;
+  }
+  
+  .entity-table th {
+    background-color: #fef3c7;
+    text-align: left;
+    font-weight: bold;
+  }
+  
+  .entity-code, 
+  .mfu-code, 
+  .unit-code {
+    text-align: center;
+    cursor: pointer;
+  }
+  
+  .entity-code {
+    color: #7f1d1d;
+    font-weight: bold;
+  }
+  
+  .mfu-code {
+    color: #1e40af;
+  }
+  
+  .unit-code {
+    color: #854d0e;
+  }
+  
+  .entity-code:hover, 
+  .mfu-code:hover, 
+  .unit-code:hover {
+    text-decoration: underline;
+    background-color: #f3f4f6;
+  }
+  
+  /* Message styles */
+  .message {
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .message p {
+    font-weight: bold;
+  }

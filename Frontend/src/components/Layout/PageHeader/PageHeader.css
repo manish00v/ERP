@@ -1,0 +1,118 @@
+/* Page Header Styles */
+.page-header-container {
+  position: relative;
+  top: 0;
+  border-bottom: 2px solid #ddd;
+  padding: 15px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #333;
+  z-index: 1000;
+}
+
+.page-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.page-title-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.page-title:hover {
+  transform: translateX(20%);
+}
+
+.back-arrow {
+  position: absolute;
+  left: -20px;
+  font-weight: bold;
+  color: #333333; /* Same as title color */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.page-title:hover .back-arrow {
+  opacity: 1;
+}
+
+.title-text {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.subtitle-container {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 5px;
+  padding: 2px 5px;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  position: relative;
+  padding-left: 0;
+  transition: padding-left 0.2s ease;
+}
+
+.page-title-section:hover .page-subtitle {
+  padding-left: 15px;
+}
+
+.new-button-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  gap: 10px;
+  margin: 2px;
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.new-button-page-header:hover {
+  background-color: #0000FF;
+  color: #fff;
+  transform: scale(1.05);
+  border: 1px solid #0000FF;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-header-container {
+    padding: 12px 15px;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+  }
+
+  .new-button-page-header {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+}
