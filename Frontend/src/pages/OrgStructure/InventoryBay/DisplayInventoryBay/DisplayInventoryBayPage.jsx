@@ -1,22 +1,14 @@
 import { useState, useEffect, useContext } from "react";
-import { Search } from 'lucide-react';
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
+import { useNavigate } from "react-router-dom";
 
 function DisplayInventoryBayPage() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [inventoryBays, setInventoryBays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for inventory bays
-  const mockData = [
-    { code: 'IB01', description: 'Main Warehouse Aisle 1', stockingType: 'Pallet' },
-    { code: 'IB02', description: 'Cold Storage Room', stockingType: 'Case' },
-    { code: 'IB03', description: 'High Security Vault', stockingType: 'Item' },
-    { code: 'IB04', description: 'Shipping Dock Area', stockingType: 'Bulk' },
-    { code: 'IB05', description: 'Returns Processing', stockingType: 'Mixed' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Inventory Bay');
@@ -28,30 +20,21 @@ function DisplayInventoryBayPage() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchTerm = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchTerm) {
-          const filteredData = mockData.filter(bay => 
-            bay.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            bay.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (bay.stockingType && bay.stockingType.toLowerCase().includes(searchTerm.toLowerCase()))
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchInventoryBays = async (searchTerm = '') => {
+  const fetchInventoryBays = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const data = await mockFetch(searchTerm);
-      setInventoryBays(data);
+      const response = await fetch("http://localhost:5003/api/inventory-bays");
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+      const formatted = data.map((item) => ({
+        code: item.InventoryBayId,
+        description: item.InventoryBayName,
+        stockingType: item.StockingType,
+      }));
+      setInventoryBays(formatted);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch inventory bays');
@@ -65,14 +48,11 @@ function DisplayInventoryBayPage() {
     fetchInventoryBays();
   }, []);
 
-  const handleCodeClick = (code) => {
-    window.location.href = `/editInventoryBay`;
+    const handleCodeClick = (InventoryBayId) => {
+    navigate(`/editInventoryBay/${InventoryBayId}`);
   };
-
   return (
     <div className="organizational-container-table">
-      
-      {/* Inventory Bay Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
           <thead>

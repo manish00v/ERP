@@ -1,77 +1,129 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import '../BUMFUBE/EditAssignmentTable/EditAssignmentTable.css';
 
 const MfuIuIbManager = () => {
   const navigate = useNavigate();
+  const { factoryUnitCode } = useParams();
   
-  // Initial state for table data
-  const [assignments, setAssignments] = useState([
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      inventoryUnitCode: 'IU1',
-      inventoryUnitDescription: 'Inventory Unit-1',
-      inventoryBayCode: 'IB1',
-      inventoryBayDescription: 'Inventory Bay-1'
-    },
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      inventoryUnitCode: 'IU1',
-      inventoryUnitDescription: 'Inventory Unit-1',
-      inventoryBayCode: 'IB2',
-      inventoryBayDescription: 'Inventory Bay-2'
-    }
-  ]);
+  const [assignment, setAssignment] = useState({
+    mfuCode: '',
+    mfuDescription: '',
+    InventoryUnitCode: '',
+    InventoryUnitDescription: '',
+    InventoryBayCode: '',
+    InventoryBayDescription: ''
+  });
 
-  // Sample dropdown options
-  const mfuOptions = [
-    { code: 'MFU1', description: 'Manufacturing Unit 1' },
-    { code: 'MFU2', description: 'Manufacturing Unit 2' },
-    { code: 'MFU3', description: 'Manufacturing Unit 3' }
-  ];
-
-  const inventoryUnitOptions = [
-    { code: 'IU1', description: 'Inventory Unit-1' },
-    { code: 'IU2', description: 'Inventory Unit-2' },
-    { code: 'IU3', description: 'Inventory Unit-3' }
-  ];
-
-  const inventoryBayOptions = [
-    { code: 'IB1', description: 'Inventory Bay-1' },
-    { code: 'IB2', description: 'Inventory Bay-2' },
-    { code: 'IB3', description: 'Inventory Bay-3' }
-  ];
-
-  // State to track edit mode
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [InventoryUnitOptions, setInventoryUnitOptions] = useState([]);
+  const [InventoryBayOptions, setInventoryBayOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   
-  // Handler for Edit button
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch dropdown options
+        const [mfuRes, iuRes, ibRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/factory-units'),
+          axios.get('http://localhost:5003/api/inventory-units'),
+          axios.get('http://localhost:5003/api/inventory-bays')
+        ]);
+
+        setMfuOptions(mfuRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          description: item.factoryUnitName
+        })));
+
+        setInventoryUnitOptions(iuRes.data.map(item => ({
+          code: item.InventoryUnitId,
+          description: item.InventoryUnitName
+        })));
+
+        setInventoryBayOptions(ibRes.data.map(item => ({
+          code: item.InventoryBayId,
+          description: item.InventoryBayName
+        })));
+
+        // Fetch existing assignment if factoryUnitCode exists
+        if (factoryUnitCode) {
+          const assignmentRes = await axios.get(
+            `http://localhost:3003/api/factory-units/${factoryUnitCode}`
+          );
+          setAssignment({
+            mfuCode: assignmentRes.data.factoryUnitCode || "",
+            mfuDescription: assignmentRes.data.factoryUnitName || "",
+            InventoryUnitCode: assignmentRes.data.InventoryUnitCode || "",
+            InventoryUnitDescription: assignmentRes.data.InventoryUnitName || "",
+            InventoryBayCode: assignmentRes.data.InventoryBayCode || "",
+            InventoryBayDescription: assignmentRes.data.InventoryBayName || ""
+          });
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message || 'Failed to load data');
+        setIsLoading(false);
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    fetchData();
+  }, [factoryUnitCode]);
+
+  const handleEdit = () => setIsEditing(true);
   
-  // Handler for Save button
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save the data to a backend
-    alert('Changes saved successfully!');
-  };
-  
-  // Handler for Cancel button
-  const handleCancel = () => {
-    if (!isEditing) {
-      // When not in edit mode (paired with Edit button), navigate back
-      navigate('/MfuIuIb');
-    } else {
-      // When in edit mode (paired with Save button), just cancel editing
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      
+      const dataToSave = {
+        factoryUnitCode: assignment.mfuCode,
+        InventoryUnitCode: assignment.InventoryUnitCode,
+        InventoryBayCode: assignment.InventoryBayCode
+      };
+
+      const url = factoryUnitCode 
+        ? `http://localhost:3003/api/factory-units/${factoryUnitCode}`
+        : 'http://localhost:3003/api/factory-units';
+
+      const method = factoryUnitCode ? 'put' : 'post';
+
+      await axios[method](url, dataToSave);
+
       setIsEditing(false);
-      // You might want to reset any unsaved changes here
+      setIsLoading(false);
+      alert('Assignment saved successfully!');
+      navigate('/MfuIuIb');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to save data');
+      setIsLoading(false);
+      console.error('Error saving data:', err);
     }
   };
   
+  const handleCancel = () => {
+    if (!isEditing) {
+      navigate('/MfuIuIb');
+    } else {
+      setIsEditing(false);
+    }
+  };
 
+  const handleSelectChange = (field, value, descriptionField, options) => {
+    const selectedOption = options.find(opt => opt.code === value);
+    setAssignment(prev => ({
+      ...prev,
+      [field]: value,
+      [descriptionField]: selectedOption?.description || ""
+    }));
+  };
+
+  if (isLoading) return <div className="business-entity-container">Loading...</div>;
+  if (error) return <div className="business-entity-container">Error: {error}</div>;
 
   return (
     <div className="business-entity-container">
@@ -79,19 +131,12 @@ const MfuIuIbManager = () => {
         <div className="button-row">
           <div className="left-buttons">
             {!isEditing ? (
-              <button onClick={handleEdit} className="edit-button">
-                Edit
-              </button>
+              <button onClick={handleEdit} className="edit-button">Edit</button>
             ) : (
-              <button onClick={handleSave} className="save-button">
-                Save
-              </button>
+              <button onClick={handleSave} className="save-button">Save</button>
             )}
-            <button onClick={handleCancel} className="cancel-button">
-              Cancel
-            </button>
+            <button onClick={handleCancel} className="cancel-button">Cancel</button>
           </div>
-          
         </div>
         
         <div className="table-container">
@@ -107,136 +152,86 @@ const MfuIuIbManager = () => {
               </tr>
             </thead>
             <tbody>
-              {assignments.map((assignment, index) => (
-                <tr key={index}>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={assignment.mfuCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedMfu = mfuOptions.find(opt => opt.code === e.target.value);
-                          if (selectedMfu) {
-                            updatedAssignments[index].mfuDescription = selectedMfu.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
-                      >
-                        {mfuOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignment.mfuCode
-                    )}
-                  </td>
-                  <td className="description-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={assignment.mfuDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
-                      />
-                    ) : (
-                      assignment.mfuDescription
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={assignment.inventoryUnitCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].inventoryUnitCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedIu = inventoryUnitOptions.find(opt => opt.code === e.target.value);
-                          if (selectedIu) {
-                            updatedAssignments[index].inventoryUnitDescription = selectedIu.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
-                      >
-                        {inventoryUnitOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignment.inventoryUnitCode
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={assignment.inventoryUnitDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].inventoryUnitDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
-                      />
-                    ) : (
-                      assignment.inventoryUnitDescription
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={assignment.inventoryBayCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].inventoryBayCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedIb = inventoryBayOptions.find(opt => opt.code === e.target.value);
-                          if (selectedIb) {
-                            updatedAssignments[index].inventoryBayDescription = selectedIb.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
-                      >
-                        {inventoryBayOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignment.inventoryBayCode
-                    )}
-                  </td>
-                  <td className="description-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={assignment.inventoryBayDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].inventoryBayDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
-                      />
-                    ) : (
-                      assignment.inventoryBayDescription
-                    )}
-                  </td>
-                </tr>
-              ))}
+              <tr>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.mfuCode}
+                      onChange={(e) => handleSelectChange(
+                        'mfuCode', 
+                        e.target.value, 
+                        'mfuDescription',
+                        mfuOptions
+                      )}
+                    >
+                      <option value="">Select MFU</option>
+                      {mfuOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.mfuCode || "-"
+                  )}
+                </td>
+                <td>
+                  {assignment.mfuDescription || "-"}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.InventoryUnitCode}
+                      onChange={(e) => handleSelectChange(
+                        'InventoryUnitCode', 
+                        e.target.value, 
+                        'InventoryUnitDescription',
+                        InventoryUnitOptions
+                      )}
+                    >
+                      <option value="">Select Inventory Unit</option>
+                      {InventoryUnitOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.InventoryUnitCode || "-"
+                  )}
+                </td>
+                <td>
+                  {assignment.InventoryUnitDescription || "-"}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.InventoryBayCode}
+                      onChange={(e) => handleSelectChange(
+                        'InventoryBayCode', 
+                        e.target.value, 
+                        'InventoryBayDescription',
+                        InventoryBayOptions
+                      )}
+                    >
+                      <option value="">Select Inventory Bay</option>
+                      {InventoryBayOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.InventoryBayCode || "-"
+                  )}
+                </td>
+                <td>
+                  {assignment.InventoryBayDescription || "-"}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

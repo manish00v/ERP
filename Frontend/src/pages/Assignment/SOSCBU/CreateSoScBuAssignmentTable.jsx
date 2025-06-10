@@ -1,52 +1,107 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from 'axios';
 import '../BUMFUBE/CreateAssignmentTable/createAssignmentTable.css';
 
 function CreateSoScBuAssignmentTable() {
-  
-  // Sample options data
-  const buOptions = [
-    { code: 'BU1', name: 'Business Unit 1' },
-    { code: 'BU2', name: 'Business Unit 2' },
-    { code: 'BU3', name: 'Business Unit 3' }
-  ];
-
-  const scOptions = [
-    { code: 'SC1', name: 'Sales Channel 1' },
-    { code: 'SC2', name: 'Sales Channel 2' },
-    { code: 'SC3', name: 'Sales Channel 3' }
-  ];
-
-  const soOptions = [
-    { code: 'SO1', name: 'Sales Office 1' },
-    { code: 'SO2', name: 'Sales Office 2' },
-    { code: 'SO3', name: 'Sales Office 3' }
-  ];
+  // State for options data
+  const [buOptions, setBuOptions] = useState([]);
+  const [scOptions, setScOptions] = useState([]);
+  const [soOptions, setSoOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for table data
   const [assignmentData, setAssignmentData] = useState([
     { 
       businessUnitCode: '', 
       businessUnitDesc: '', 
-      salesChannelCode: '', 
-      salesChannelDesc: '', 
+      salesChannelId: '', 
+      salesChannelName: '', 
       salesOfficeCode: '', 
       salesOfficeDesc: '' 
     }
   ]);
 
+  // Fetch options data on component mount
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [buRes, scRes, soRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/business-units'),
+          axios.get('http://localhost:3003/api/sales-channels'),
+          axios.get('http://localhost:3003/api/sales-offices')
+        ]);
+        
+        setBuOptions(buRes.data.map(item => ({
+          code: item.businessUnitCode,
+          name: item.businessUnitDesc || ''
+        })));
+        
+        setScOptions(scRes.data.map(item => ({
+          id: item.salesChannelId,
+          name: item.salesChannelName || ''
+        })));
+        
+        setSoOptions(soRes.data.map(item => ({
+          code: item.salesOfficeCode,
+          name: item.salesOfficeDesc || ''
+        })));
+        
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+        console.error('Error fetching options:', err);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
   const handleBack = () => {
     window.history.back();
   };
 
-  const handleSave = () => {
-    console.log('Saved data:', assignmentData);
-    // Here you would typically send the data to your backend
-    alert('Data saved successfully!');
+  const handleSave = async () => {
+    try {
+      // Show saving alert
+      alert('Saving your changes...');
+      
+      // Prepare and send updates for each assignment
+      const savePromises = assignmentData
+        .filter(row => row.businessUnitCode && (row.salesChannelId || row.salesOfficeCode))
+        .map(async (row) => {
+          const updateData = {
+            salesChannelId: row.salesChannelId || null,
+            salesOfficeCode: row.salesOfficeCode || null
+          };
+
+          // Only include fields that have values
+          Object.keys(updateData).forEach(key => {
+            if (updateData[key] === null) {
+              delete updateData[key];
+            }
+          });
+
+          return axios.put(
+            `http://localhost:3003/api/business-units/${row.businessUnitCode}`,
+            updateData
+          );
+        });
+
+      await Promise.all(savePromises);
+      // Show success alert
+      alert('Your changes have been saved successfully!');
+    } catch (err) {
+      console.error('Error saving assignments:', err);
+      // Show error alert
+      alert(`Error: ${err.response?.data?.message || err.message}`);
+    }
   };
 
-  const handleRemoveRow = () => {
+  const handleRemoveRow = (index) => {
     if (assignmentData.length > 1) {
-      const newData = assignmentData.slice(0, -1);
+      const newData = assignmentData.filter((_, i) => i !== index);
       setAssignmentData(newData);
     }
   };
@@ -55,8 +110,8 @@ function CreateSoScBuAssignmentTable() {
     setAssignmentData([...assignmentData, { 
       businessUnitCode: '', 
       businessUnitDesc: '', 
-      salesChannelCode: '', 
-      salesChannelDesc: '', 
+      salesChannelId: '', 
+      salesChannelName: '', 
       salesOfficeCode: '', 
       salesOfficeDesc: '' 
     }]);
@@ -67,16 +122,22 @@ function CreateSoScBuAssignmentTable() {
     newData[index][field] = value;
     
     // Update corresponding name based on selected code
+    let options, nameField;
     if (field === 'businessUnitCode') {
-      const selectedBu = buOptions.find(opt => opt.code === value);
-      newData[index].businessUnitDesc = selectedBu ? selectedBu.name : '';
-    } else if (field === 'salesChannelCode') {
-      const selectedSc = scOptions.find(opt => opt.code === value);
-      newData[index].salesChannelDesc = selectedSc ? selectedSc.name : '';
+      options = buOptions;
+      nameField = 'businessUnitDesc';
+    } else if (field === 'salesChannelId') {
+      options = scOptions;
+      nameField = 'salesChannelName';
     } else if (field === 'salesOfficeCode') {
-      const selectedSo = soOptions.find(opt => opt.code === value);
-      newData[index].salesOfficeDesc = selectedSo ? selectedSo.name : '';
+      options = soOptions;
+      nameField = 'salesOfficeDesc';
     }
+    
+    const selectedOption = options.find(opt => 
+      field === 'salesChannelId' ? opt.id === value : opt.code === value
+    );
+    newData[index][nameField] = selectedOption ? selectedOption.name : '';
     
     setAssignmentData(newData);
   };
@@ -86,6 +147,14 @@ function CreateSoScBuAssignmentTable() {
     newData[index][field] = value;
     setAssignmentData(newData);
   };
+
+  if (isLoading) {
+    return <div className="assignment-container">Loading options...</div>;
+  }
+
+  if (error) {
+    return <div className="assignment-container">Error: {error}</div>;
+  }
 
   return (
     <div className="assignment-container">
@@ -106,11 +175,11 @@ function CreateSoScBuAssignmentTable() {
             <tr>
               <th>Business Unit Code</th>
               <th>Business Unit Name</th>
-              <th>Sales Channel Code</th>
+              <th>Sales Channel</th>
               <th>Sales Channel Name</th>
               <th>Sales Office Code</th>
               <th>Sales Office Name</th>
-             
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -139,20 +208,21 @@ function CreateSoScBuAssignmentTable() {
                     value={assignment.businessUnitDesc}
                     onChange={(e) => handleDescChange(index, 'businessUnitDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
                 
-                {/* Sales Channel Code Dropdown */}
+                {/* Sales Channel Dropdown */}
                 <td>
                   <select
-                    value={assignment.salesChannelCode}
-                    onChange={(e) => handleCodeChange(index, 'salesChannelCode', e.target.value)}
+                    value={assignment.salesChannelId}
+                    onChange={(e) => handleCodeChange(index, 'salesChannelId', e.target.value)}
                     className="assignment-code-dropdown"
                   >
                     <option value="">Select</option>
                     {scOptions.map((option) => (
-                      <option key={option.code} value={option.code}>
-                        {option.code}
+                      <option key={option.id} value={option.id}>
+                        {option.id}
                       </option>
                     ))}
                   </select>
@@ -162,9 +232,10 @@ function CreateSoScBuAssignmentTable() {
                 <td>
                   <input
                     type="text"
-                    value={assignment.salesChannelDesc}
-                    onChange={(e) => handleDescChange(index, 'salesChannelDesc', e.target.value)}
+                    value={assignment.salesChannelName}
+                    onChange={(e) => handleDescChange(index, 'salesChannelName', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
                 
@@ -191,34 +262,39 @@ function CreateSoScBuAssignmentTable() {
                     value={assignment.salesOfficeDesc}
                     onChange={(e) => handleDescChange(index, 'salesOfficeDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
-                
-              
+
+                {/* Actions column with delete icon */}
+                <td>
+                  {assignmentData.length > 1 && (
+                    <button 
+                      onClick={() => handleRemoveRow(index)} 
+                      className="remove-row-button"
+                      title="Remove row"
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
+            
+            {/* Add row button in the last row */}
+            <tr>
+              <td colSpan="7" className="add-row-cell">
+                <button 
+                  onClick={handleAddRow} 
+                  className="add-row-button"
+                  title="Add new row"
+                >
+                  <i className="fas fa-plus-circle"></i> Add Row
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
-
-         {/* Action buttons container */}
-         <div className="table-action-buttons">
-          <button 
-            onClick={handleRemoveRow} 
-            className="remove-row-button"
-            disabled={assignmentData.length <= 1}
-            title="Remove last row"
-          >
-            -
-          </button>
-          <button 
-            onClick={handleAddRow} 
-            className="add-row-button"
-            title="Add new row"
-          >
-            +
-          </button>
-        </div>
-
       </div>
     </div>
   );

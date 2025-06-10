@@ -1,22 +1,14 @@
 import { useState, useEffect, useContext } from "react";
-import { Search } from 'lucide-react';
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
+import { useNavigate } from "react-router-dom";
 
 function DisplayInventoryUnitPage() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [inventoryUnits, setInventoryUnits] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for inventory units
-  const mockData = [
-    { code: 'IU01', description: 'Primary Storage Unit', inventoryControl: 'Automated', text: 'Main warehouse unit' },
-    { code: 'IU02', description: 'Cold Storage Unit', inventoryControl: 'Manual', text: 'Refrigerated items only' },
-    { code: 'IU03', description: 'High-Value Vault', inventoryControl: 'Restricted', text: 'Security level 3 required' },
-    { code: 'IU04', description: 'Returns Processing', inventoryControl: 'Quarantine', text: 'Pending inspection' },
-    { code: 'IU05', description: 'Shipping Prep Area', inventoryControl: 'Temporary', text: 'Daily audit required' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Inventory Unit');
@@ -28,31 +20,26 @@ function DisplayInventoryUnitPage() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchTerm = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchTerm) {
-          const filteredData = mockData.filter(unit => 
-            unit.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            unit.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (unit.inventoryControl && unit.inventoryControl.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (unit.text && unit.text.toLowerCase().includes(searchTerm.toLowerCase()))
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchInventoryUnits = async (searchTerm = '') => {
+  const fetchInventoryUnits = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const data = await mockFetch(searchTerm);
-      setInventoryUnits(data);
+      const response = await fetch('http://localhost:5003/api/inventory-units');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      // Map the backend data model to the UI format
+      const transformedData = data.map(unit => ({
+        code: unit.InventoryUnitId,
+        description: unit.InventoryUnitName,
+        inventoryControl: unit.InventoryControl,
+        text: `${unit.StreetAddress}, ${unit.City}, ${unit.Region}, ${unit.Country} - ${unit.PinCode}`
+      }));
+
+      setInventoryUnits(transformedData);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch inventory units');
@@ -66,14 +53,12 @@ function DisplayInventoryUnitPage() {
     fetchInventoryUnits();
   }, []);
 
-  const handleCodeClick = (code) => {
-    window.location.href = `/editInventoryUnit`;
+  const handleCodeClick = (InventoryUnitId) => {
+    navigate(`/editInventoryUnit/${InventoryUnitId}`);
   };
 
   return (
     <div className="organizational-container-table">
-
-      {/* Inventory Unit Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
           <thead>

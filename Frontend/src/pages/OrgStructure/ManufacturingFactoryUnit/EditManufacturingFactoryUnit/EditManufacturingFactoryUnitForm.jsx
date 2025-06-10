@@ -3,50 +3,33 @@ import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContex
 import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 import { FaEdit, FaSave } from "react-icons/fa";
-
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function EditManufacturingFactoryUnitForm() {
-      const { setGoBackUrl } = useContext(FormPageHeaderContext);
-    
-    const [formData, setFormData] = useState({
-        factoryUnitCode: "",
-        factoryUnitName: "",
-        street1: "",
-        street2: "",
-        city: "",
-        state: "",
-        region: "",
-        country: "",
-        pinCode: "",
-        language: "",
-       
-    });
-
-    const [errors, setErrors] = useState({});
-    const [isEditing, setIsEditing] = useState(false);
-    const [originalData, setOriginalData] = useState({});
+  const { setGoBackUrl } = useContext(FormPageHeaderContext);
+  const { factoryUnitCode } = useParams();
+  const navigate = useNavigate();
   
-    useEffect(() => {
-        setGoBackUrl("/displayManufacturingFactoryUnitForm");
-      const mockData = {
-      factoryUnitCode: "BC12",
-      factoryUnitName: "Sample Business",
-      street1: "123 Main St",
-      street2: "Apt 4B",
-      city: "Mumbai",
-      state: "Maharashtra",
-      region: "Western Asia",
-      country: "India",
-      pinCode: "400001",
-      language: "",
-      };
-      setFormData(mockData);
-    setOriginalData(mockData);
-  }, [setGoBackUrl]);
+  const [formData, setFormData] = useState({
+    factoryUnitCode: "",
+    factoryUnitName: "",
+    street1: "",
+    street2: "",
+    city: "",
+    state: "",
+    region: "",
+    country: "",
+    pinCode: "",
+    language: "EN",
+  });
 
+  const [errors, setErrors] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
-    const indianCities = [
-        
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -97,126 +80,168 @@ export default function EditManufacturingFactoryUnitForm() {
     
       ];
 
-    const validateField = (name, value) => {
-        switch (name) {
-            case 'factoryUnitCode':
-                if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
-                    return 'Factory Unit Code must be exactly 4 alphanumeric characters';
-                }
-                break;
-            case 'factoryUnitName':
-                if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
-                    return 'Factory Unit Name must be alphanumeric and up to 30 characters';
-                }
-                break;
-            case 'street1':
-                if (value.length > 50) {
-                    return 'Street 1 must be less than 50 characters';
-                }
-                break;
-            case 'street2':
-                if (value.length > 50 || (value && !/^[a-zA-Z0-9 ]+$/.test(value))) {
-                    return 'Street 2 must be alphanumeric and less than 50 characters';
-                }
-                break;
-            case 'city':
-                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
-                    return 'City must be alphabetical and less than 30 characters';
-                }
-                break;
-            case 'state':
-                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
-                    return 'State must be alphabetical and less than 30 characters';
-                }
-                break;
-            case 'region':
-                if (value.length > 50 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
-                    return 'Region must be alphanumeric and less than 50 characters';
-                }
-                break;
-            case 'country':
-                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
-                    return 'Country must be alphabetical and less than 30 characters';
-                }
-                break;
-            case 'pinCode':
-                if (!/^[0-9]{4,6}$/.test(value)) {
-                    return 'Pin code must be numeric and between 4 to 6 digits';
-                }
-                break;
-            case 'language':
-                if (value.length > 20) {
-                    return 'Language must be less than 20 characters';
-                }
-                break;
-            default:
-                return '';
+  useEffect(() => {
+    setGoBackUrl("/displayManufacturingFactoryUnitForm");
+    fetchFactoryUnit();
+  }, [setGoBackUrl, factoryUnitCode]);
+
+  const fetchFactoryUnit = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:3003/api/factory-units/${factoryUnitCode}`
+      );
+      setFormData(response.data);
+      setOriginalData(response.data);
+    } catch (error) {
+      console.error("Error fetching factory unit:", error);
+      alert("Failed to fetch factory unit data");
+      navigate("/displayManufacturingFactoryUnitForm");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'factoryUnitCode':
+        if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
+          return 'Factory Unit Code must be exactly 4 alphanumeric characters';
         }
+        break;
+      case 'factoryUnitName':
+        if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
+          return 'Factory Unit Name must be alphanumeric and up to 30 characters';
+        }
+        break;
+      case 'street1':
+        if (value.length > 50) {
+          return 'Street 1 must be less than 50 characters';
+        }
+        break;
+      case 'street2':
+        if (value.length > 50 || (value && !/^[a-zA-Z0-9 ]+$/.test(value))) {
+          return 'Street 2 must be alphanumeric and less than 50 characters';
+        }
+        break;
+      case 'city':
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'City must be alphabetical and less than 30 characters';
+        }
+        break;
+      case 'state':
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'State must be alphabetical and less than 30 characters';
+        }
+        break;
+      case 'region':
+        if (value.length > 50 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
+          return 'Region must be alphanumeric and less than 50 characters';
+        }
+        break;
+      case 'country':
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'Country must be alphabetical and less than 30 characters';
+        }
+        break;
+      case 'pinCode':
+        if (!/^[0-9]{4,6}$/.test(value)) {
+          return 'Pin code must be numeric and between 4 to 6 digits';
+        }
+        break;
+      case 'language':
+        if (value.length > 20) {
+          return 'Language must be less than 20 characters';
+        }
+        break;
+      default:
         return '';
-    };
+    }
+    return '';
+  };
 
-    const handleChange = (e) => {
-        if (!isEditing) return;
-        
-        const { name, value } = e.target;
+  const handleChange = (e) => {
+    if (!isEditing) return;
     
-        // Validate the field
-        const error = validateField(name, value);
-        setErrors((prev) => ({
-          ...prev,
-          [name]: error,
-        }));
-    
-        // If country changes, reset city
-        if (name === "country") {
-          setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-            city: "" // Reset city when country changes
-          }));
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-          }));
-        }
-      };
-    
-      const handleSubmit = (e) => {
-        e.preventDefault();
-    
-        let formValid = true;
-        const newErrors = {};
-    
-        Object.keys(formData).forEach((key) => {
-          const error = validateField(key, formData[key]);
-          if (error) {
-            newErrors[key] = error;
-            formValid = false;
-          }
-        });
-    
-        setErrors(newErrors);
-    
-        if (formValid) {
-          console.log("Form data valid, ready to submit:", formData);
-          alert("Manufacturing Factory Unit updated successfully!");
-          setOriginalData(formData);
-          setIsEditing(false);
-        } else {
-          alert("Please fix the errors in the form before submitting.");
-        }
-      };
-    
-      const handleEdit = () => {
-        setIsEditing(true);
-      };
+    const { name, value } = e.target;
 
-    return (
-        <>
-       
-      
-       <div className="container">
+    // Validate the field
+    const error = validateField(name, value);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+
+    // If country changes, reset city
+    if (name === "country") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        city: "" // Reset city when country changes
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let formValid = true;
+    const newErrors = {};
+
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        formValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (!formValid) {
+      alert("Please fix the errors in the form before submitting.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3003/api/factory-units/${factoryUnitCode}`,
+        formData
+      );
+
+      if (response.status === 200) {
+        alert("Manufacturing Factory Unit updated successfully!");
+        setOriginalData(formData);
+        setIsEditing(false);
+        // Optionally refresh the data
+        fetchFactoryUnit();
+      }
+    } catch (error) {
+      console.error("Error updating factory unit:", error);
+      if (error.response?.status === 409) {
+        alert("Error: Factory Unit Code already exists");
+      } else {
+        alert("Failed to update factory unit");
+      }
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  if (isLoading) {
+    return <div className="container">Loading...</div>;
+  }
+
+  return (
+    <>
+      <div className="container">
         <div className="edit-controls">
           {isEditing ? (
             <button 
@@ -238,20 +263,20 @@ export default function EditManufacturingFactoryUnitForm() {
         </div>
         
         <form id="factoryUnitForm" onSubmit={handleSubmit}>
-          {/* factory Unit Details */}
+          {/* Factory Unit Details */}
           <div className="header-box">
-            <h2>factory Unit Details</h2>
+            <h2>Factory Unit Details</h2>
             <div className="data-container">
               <div className="data">
                 <label htmlFor="factoryUnitCode">Factory Unit Code*</label>
                 <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
-                    1- Factory UnitfCode must be exactly 4 digits. <br />
+                    1- Factory Unit Code must be exactly 4 digits. <br />
                     2- Factory Unit Code must be unique. <br />
-                    3- Factory Unit Code must not contain any special characters.  <br />
+                    3- Factory Unit Code must not contain any special characters. <br />
                     4- Factory Unit Code must not contain any spaces. <br /> 
-                    5- Factory Unit Code once created then it can be not delete. <br />
+                    5- Factory Unit Code once created then it cannot be deleted. <br />
                   </span>
                 </span>
                 <input
@@ -262,8 +287,8 @@ export default function EditManufacturingFactoryUnitForm() {
                   onChange={handleChange}
                   maxLength={4}
                   required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
+                  readOnly={true} // Code should not be editable
+                  className="read-only"
                 />
                 {errors.factoryUnitCode && (
                   <span className="error">{errors.factoryUnitCode}</span>
@@ -274,7 +299,7 @@ export default function EditManufacturingFactoryUnitForm() {
                 <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
-                  Factory Unit Name must be alphanumeric and up to 30 characters.
+                    Factory Unit Name must be alphanumeric and up to 30 characters.
                   </span>
                 </span>
                 <input
@@ -295,8 +320,8 @@ export default function EditManufacturingFactoryUnitForm() {
             </div>
           </div>
 
-                    {/* Address Details */}
-                    <div className="item-box">
+          {/* Address Details */}
+          <div className="item-box">
             <h2>Address Details</h2>
             <div className="data-container">
               <div className="data">
@@ -354,7 +379,7 @@ export default function EditManufacturingFactoryUnitForm() {
                 {errors.state && <span className="error">{errors.state}</span>}
               </div>
 
-              <div className="data">
+                 <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -362,9 +387,6 @@ export default function EditManufacturingFactoryUnitForm() {
                   value={formData.region}
                   onChange={handleChange}
                   required
-                  placeholder="Region"
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a region</option>
                   {[
@@ -406,8 +428,6 @@ export default function EditManufacturingFactoryUnitForm() {
                   value={formData.country}
                   onChange={handleChange}
                   required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a country</option>
                   {[
@@ -617,6 +637,7 @@ export default function EditManufacturingFactoryUnitForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
+              
               <div className="data">
                 <label htmlFor="city">City*</label>
                 <select
@@ -664,36 +685,30 @@ export default function EditManufacturingFactoryUnitForm() {
               </div>
 
               <div className="data">
-                                <label htmlFor="language">Language</label>
-                                <input
-                                    type="language"
-                                    id="language"
-                                    name="language"
-                                    value={formData.language}
-                                    onChange={handleChange}
-                                    maxLength={20}
-                                    required
-                  placeholder="Language"
-                  readOnly={!isEditing}
+                <label htmlFor="language">Language</label>
+                <select
+                  id="language"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleChange}
+                  disabled={!isEditing}
                   className={!isEditing ? "read-only" : ""}
-                                />
-    {errors.languagee && (
+                >
+                  <option value="EN">English</option>
+                  <option value="FR">French</option>
+                  <option value="DE">German</option>
+                  <option value="ES">Spanish</option>
+                  <option value="HI">Hindi</option>
+                </select>
+                {errors.language && (
                   <span className="error">{errors.language}</span>
                 )}
-                            </div>
-                      
+              </div>
             </div>
           </div>
-
-                            
-                    
-
-                   
-
-                    
-                </form>
-            </div>
-            <FormPageHeader 
+        </form>
+      </div>
+      <FormPageHeader 
         onCancel={() => {
           if (isEditing) {
             setFormData(originalData);
@@ -702,6 +717,6 @@ export default function EditManufacturingFactoryUnitForm() {
           }
         }}
       />
-        </>
-    );
+    </>
+  );
 }

@@ -1,26 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from 'axios';
 import '../BUMFUBE/CreateAssignmentTable/createAssignmentTable.css';
 
 function CreateMfuIuIbAssignmentTable() {
-  
-  // Sample options data
-  const mfuOptions = [
-    { code: 'MFU1', name: 'Manufacturing Unit 1' },
-    { code: 'MFU2', name: 'Manufacturing Unit 2' },
-    { code: 'MFU3', name: 'Manufacturing Unit 3' }
-  ];
-
-  const iuOptions = [
-    { code: 'IU1', name: 'Inventory Unit 1' },
-    { code: 'IU2', name: 'Inventory Unit 2' },
-    { code: 'IU3', name: 'Inventory Unit 3' }
-  ];
-
-  const ibOptions = [
-    { code: 'IB1', name: 'Inventory Bay 1' },
-    { code: 'IB2', name: 'Inventory Bay 2' },
-    { code: 'IB3', name: 'Inventory Bay 3' }
-  ];
+  // State for options data
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [iuOptions, setIuOptions] = useState([]);
+  const [ibOptions, setIbOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for table data
   const [assignmentData, setAssignmentData] = useState([
@@ -34,13 +22,49 @@ function CreateMfuIuIbAssignmentTable() {
     }
   ]);
 
+  // Fetch options data on component mount
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [mfuRes, iuRes, ibRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/factory-units'),
+          axios.get('http://localhost:5003/api/inventory-units'),
+          axios.get('http://localhost:5003/api/inventory-bays')
+        ]);
+        
+        setMfuOptions(mfuRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          name: item.factoryUnitName || ''
+        })));
+        
+        setIuOptions(iuRes.data.map(item => ({
+          code: item.InventoryUnitId,
+          name: item.InventoryUnitName || ''
+        })));
+        
+        setIbOptions(ibRes.data.map(item => ({
+          code: item.InventoryBayId,
+          name: item.InventoryBayName || ''
+        })));
+        
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+        console.error('Error fetching options:', err);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
   const handleBack = () => {
     window.history.back();
   };
 
-  const handleRemoveRow = () => {
+  const handleRemoveRow = (index) => {
     if (assignmentData.length > 1) {
-      const newData = assignmentData.slice(0, -1);
+      const newData = assignmentData.filter((_, i) => i !== index);
       setAssignmentData(newData);
     }
   };
@@ -61,16 +85,20 @@ function CreateMfuIuIbAssignmentTable() {
     newData[index][field] = value;
     
     // Update corresponding name based on selected code
+    let options, nameField;
     if (field === 'mfuCode') {
-      const selectedMfu = mfuOptions.find(opt => opt.code === value);
-      newData[index].mfuDesc = selectedMfu ? selectedMfu.name : '';
+      options = mfuOptions;
+      nameField = 'mfuDesc';
     } else if (field === 'iuCode') {
-      const selectedIu = iuOptions.find(opt => opt.code === value);
-      newData[index].iuDesc = selectedIu ? selectedIu.name : '';
+      options = iuOptions;
+      nameField = 'iuDesc';
     } else if (field === 'ibCode') {
-      const selectedIb = ibOptions.find(opt => opt.code === value);
-      newData[index].ibDesc = selectedIb ? selectedIb.name : '';
+      options = ibOptions;
+      nameField = 'ibDesc';
     }
+    
+    const selectedOption = options.find(opt => opt.code === value);
+    newData[index][nameField] = selectedOption ? selectedOption.name : '';
     
     setAssignmentData(newData);
   };
@@ -81,11 +109,57 @@ function CreateMfuIuIbAssignmentTable() {
     setAssignmentData(newData);
   };
 
-  const handleSave = () => {
-    console.log('Saved data:', assignmentData);
-    // Here you would typically send the data to your backend
-    alert('Data saved successfully!');
-  };
+const handleSave = async () => {
+  try {
+    // Filter and prepare valid updates only
+    const updates = assignmentData
+      .filter(row => row.mfuCode && (row.iuCode || row.ibCode))
+      .map(row => {
+        const updateData = {};
+        if (row.iuCode) updateData.InventoryUnitId = row.iuCode;
+        if (row.ibCode) updateData.InventoryBayId = row.ibCode;
+        return {
+          factoryUnitCode: row.mfuCode,
+          updateData
+        };
+      });
+
+    // Check if any valid updates exist
+    if (updates.length === 0) {
+      alert('Please enter at least one Inventory Unit or Bay for each MFU');
+      return;
+    }
+
+    // Execute updates
+    const savePromises = updates.map(({ factoryUnitCode, updateData }) =>
+      axios.put(`http://localhost:3003/api/factory-units/${factoryUnitCode}`, updateData)
+    );
+
+    await Promise.all(savePromises);
+    alert('Assignments saved successfully!');
+    
+    // Reset form after successful save
+    setAssignmentData([{ 
+      mfuCode: '', 
+      mfuDesc: '', 
+      iuCode: '', 
+      iuDesc: '', 
+      ibCode: '', 
+      ibDesc: '' 
+    }]);
+
+  } catch (err) {
+    console.error('Save failed:', err);
+    alert(`Save failed: ${err.response?.data?.message || err.message}`);
+  }
+};
+  if (isLoading) {
+    return <div className="assignment-container">Loading options...</div>;
+  }
+
+  if (error) {
+    return <div className="assignment-container">Error: {error}</div>;
+  }
 
   return (
     <div className="assignment-container">
@@ -105,11 +179,12 @@ function CreateMfuIuIbAssignmentTable() {
           <thead>
             <tr>
               <th>MFU Code</th>
-              <th>MFU name</th>
+              <th>MFU Name</th>
               <th>IU Code</th>
-              <th>IU name</th>
+              <th>IU Name</th>
               <th>IB Code</th>
-              <th>IB name</th>
+              <th>IB Name</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -131,13 +206,14 @@ function CreateMfuIuIbAssignmentTable() {
                   </select>
                 </td>
                 
-                {/* MFU name */}
+                {/* MFU Name */}
                 <td>
                   <input
                     type="text"
                     value={assignment.mfuDesc}
                     onChange={(e) => handleDescChange(index, 'mfuDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
                 
@@ -157,13 +233,14 @@ function CreateMfuIuIbAssignmentTable() {
                   </select>
                 </td>
                 
-                {/* IU name */}
+                {/* IU Name */}
                 <td>
                   <input
                     type="text"
                     value={assignment.iuDesc}
                     onChange={(e) => handleDescChange(index, 'iuDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
                 
@@ -183,39 +260,46 @@ function CreateMfuIuIbAssignmentTable() {
                   </select>
                 </td>
                 
-                {/* IB name */}
+                {/* IB Name */}
                 <td>
                   <input
                     type="text"
                     value={assignment.ibDesc}
                     onChange={(e) => handleDescChange(index, 'ibDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
+                </td>
+
+                {/* Actions column with delete icon */}
+                <td>
+                  {assignmentData.length > 1 && (
+                    <button 
+                      onClick={() => handleRemoveRow(index)} 
+                      className="remove-row-button"
+                      title="Remove row"
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
+            
+            {/* Add row button in the last row */}
+            <tr>
+              <td colSpan="7" className="add-row-cell">
+                <button 
+                  onClick={handleAddRow} 
+                  className="add-row-button"
+                  title="Add new row"
+                >
+                  <i className="fas fa-plus-circle"></i> Add Row
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
-
-         {/* Action buttons container */}
-         <div className="table-action-buttons">
-          <button 
-            onClick={handleRemoveRow} 
-            className="remove-row-button"
-            disabled={assignmentData.length <= 1}
-            title="Remove last row"
-          >
-            -
-          </button>
-          <button 
-            onClick={handleAddRow} 
-            className="add-row-button"
-            title="Add new row"
-          >
-            +
-          </button>
-        </div>
-
       </div>
     </div>
   );

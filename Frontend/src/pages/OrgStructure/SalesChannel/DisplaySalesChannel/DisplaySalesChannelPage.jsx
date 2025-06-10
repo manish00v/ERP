@@ -1,21 +1,15 @@
 import { useState, useEffect, useContext } from "react";
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
+import { useNavigate } from "react-router-dom";
+
 
 function DisplaySalesChannelPage() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [salesChannels, setSalesChannels] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for sales channels
-  const mockData = [
-    { code: 'SC01', description: 'Online Store' },
-    { code: 'SC02', description: 'Retail Partners' },
-    { code: 'SC03', description: 'Wholesale' },
-    { code: 'SC04', description: 'Mobile App' },
-    { code: 'SC05', description: 'Marketplace' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Sales Channel');
@@ -27,29 +21,25 @@ function DisplaySalesChannelPage() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchTerm = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchTerm) {
-          const filteredData = mockData.filter(channel => 
-            channel.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            channel.description.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchSalesChannels = async (searchTerm = '') => {
+  const fetchSalesChannels = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const data = await mockFetch(searchTerm);
-      setSalesChannels(data);
+      const response = await fetch('http://localhost:3003/api/sales-channels');
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+
+      const data = await response.json();
+
+      // Transform data to match expected table format
+      const transformed = data.map(item => ({
+        code: item.salesChannelId,
+        description: item.salesChannelName
+      }));
+
+      setSalesChannels(transformed);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch sales channels');
@@ -63,21 +53,19 @@ function DisplaySalesChannelPage() {
     fetchSalesChannels();
   }, []);
 
-  const handleCodeClick = () => {
-    window.location.href = `/editSalesChannel`;
+  const handleCodeClick = (salesChannelId) => {
+    navigate(`/editSalesChannel/${salesChannelId}`);
   };
 
   return (
     <div className="organizational-container-table">
-      
-
       {/* Sales Channel Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
           <thead>
             <tr>
               <th className="organizational-table__header">Channel Code</th>
-              <th className="organizational-table__header">Description</th>
+              <th className="organizational-table__header">Channel Name</th>
             </tr>
           </thead>
           <tbody>

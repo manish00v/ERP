@@ -1,57 +1,84 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import './createAssignmentTable.css';
+import axios from 'axios';
 
 function CreateAssignmentTable() {
-  
-  // Sample options data
-  const businessEntityOptions = [
-    { code: 'BE1', name: 'Business Entity 1' },
-    { code: 'BE2', name: 'Business Entity 2' },
-    { code: 'BE3', name: 'Business Entity 3' }
-  ];
-
-  const mfuOptions = [
-    { code: 'MFU1', name: 'Manufacturing Unit 1' },
-    { code: 'MFU2', name: 'Manufacturing Unit 2' },
-    { code: 'MFU3', name: 'Manufacturing Unit 3' }
-  ];
-
-  const businessUnitOptions = [
-    { code: 'BU1', name: 'Business Unit 1' },
-    { code: 'BU2', name: 'Business Unit 2' },
-    { code: 'BU3', name: 'Business Unit 3' }
-  ];
+  // State for options data
+  const [businessEntityOptions, setBusinessEntityOptions] = useState([]);
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [businessUnitOptions, setBusinessUnitOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for table data
   const [assignmentData, setAssignmentData] = useState([
-    { 
-      businessEntityCode: '', 
-      businessEntityDesc: '', 
-      mfuCode: '', 
-      mfuDesc: '', 
-      businessUnitCode: '', 
-      businessUnitDesc: '' 
+    {
+      businessEntityCode: '',
+      businessEntityDesc: '',
+      mfuCode: '',
+      mfuDesc: '',
+      businessUnitCode: '',
+      businessUnitDesc: ''
     }
   ]);
+
+  // Fetch options data on component mount
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [entitiesRes, unitsRes, factoryUnitsRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/business-entities'),
+          axios.get('http://localhost:3003/api/business-units'),
+          axios.get('http://localhost:3003/api/factory-units')
+        ]);
+
+        setBusinessEntityOptions(entitiesRes.data.map(item => ({
+          code: item.businessEntityCode,
+          name: item.businessEntityName || ''
+        })));
+
+        setBusinessUnitOptions(unitsRes.data.map(item => ({
+          code: item.businessUnitCode,
+          name: item.businessUnitName || ''
+        })));
+
+        setMfuOptions(factoryUnitsRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          name: item.factoryUnitName || ''
+        })));
+
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+        console.error('Error fetching options:', err);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const handleBack = () => {
     window.history.back();
   };
 
   const handleAddRow = () => {
-    setAssignmentData([...assignmentData, { 
-      businessEntityCode: '', 
-      businessEntityDesc: '', 
-      mfuCode: '', 
-      mfuDesc: '', 
-      businessUnitCode: '', 
-      businessUnitDesc: '' 
-    }]);
+    setAssignmentData([
+      ...assignmentData,
+      {
+        businessEntityCode: '',
+        businessEntityDesc: '',
+        mfuCode: '',
+        mfuDesc: '',
+        businessUnitCode: '',
+        businessUnitDesc: ''
+      }
+    ]);
   };
 
-  const handleRemoveRow = () => {
+  const handleRemoveRow = (index) => {
     if (assignmentData.length > 1) {
-      const newData = assignmentData.slice(0, -1);
+      const newData = assignmentData.filter((_, i) => i !== index);
       setAssignmentData(newData);
     }
   };
@@ -59,19 +86,23 @@ function CreateAssignmentTable() {
   const handleCodeChange = (index, field, value) => {
     const newData = [...assignmentData];
     newData[index][field] = value;
-    
+
     // Update corresponding name based on selected code
+    let options, nameField;
     if (field === 'businessEntityCode') {
-      const selectedEntity = businessEntityOptions.find(opt => opt.code === value);
-      newData[index].businessEntityDesc = selectedEntity ? selectedEntity.name : '';
+      options = businessEntityOptions;
+      nameField = 'businessEntityDesc';
     } else if (field === 'mfuCode') {
-      const selectedMfu = mfuOptions.find(opt => opt.code === value);
-      newData[index].mfuDesc = selectedMfu ? selectedMfu.name : '';
+      options = mfuOptions;
+      nameField = 'mfuDesc';
     } else if (field === 'businessUnitCode') {
-      const selectedBu = businessUnitOptions.find(opt => opt.code === value);
-      newData[index].businessUnitDesc = selectedBu ? selectedBu.name : '';
+      options = businessUnitOptions;
+      nameField = 'businessUnitDesc';
     }
-    
+
+    const selectedOption = options.find(opt => opt.code === value);
+    newData[index][nameField] = selectedOption ? selectedOption.name : '';
+
     setAssignmentData(newData);
   };
 
@@ -81,11 +112,37 @@ function CreateAssignmentTable() {
     setAssignmentData(newData);
   };
 
-  const handleSave = () => {
-    console.log('Saved data:', assignmentData);
-    // Here you would typically send the data to your backend
+  const handleSave = async () => {
+  const dataToSave = assignmentData.map(row => ({
+    businessEntityCode: row.businessEntityCode,
+    factoryUnitCode: row.mfuCode,
+    businessUnitCode: row.businessUnitCode
+  }));
+
+  try {
+    // For each row, send a PUT request to update the corresponding business entity
+    for (const row of dataToSave) {
+      await axios.put(`http://localhost:3003/api/business-entities/${row.businessEntityCode}`, {
+        factoryUnitCode: row.factoryUnitCode,
+        businessUnitCode: row.businessUnitCode
+      });
+    }
+
     alert('Data saved successfully!');
-  };
+  } catch (err) {
+    console.error('Error saving data:', err);
+    alert('Failed to save data.');
+  }
+};
+
+
+  if (isLoading) {
+    return <div className="assignment-container">Loading options...</div>;
+  }
+
+  if (error) {
+    return <div className="assignment-container">Error: {error}</div>;
+  }
 
   return (
     <div className="assignment-container">
@@ -110,6 +167,7 @@ function CreateAssignmentTable() {
               <th>MFU name</th>
               <th>Business Unit Code</th>
               <th>Business Unit name</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -130,7 +188,7 @@ function CreateAssignmentTable() {
                     ))}
                   </select>
                 </td>
-                
+
                 {/* Business Entity name */}
                 <td>
                   <input
@@ -138,9 +196,10 @@ function CreateAssignmentTable() {
                     value={assignment.businessEntityDesc}
                     onChange={(e) => handleDescChange(index, 'businessEntityDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
-                
+
                 {/* MFU Code Dropdown */}
                 <td>
                   <select
@@ -156,7 +215,7 @@ function CreateAssignmentTable() {
                     ))}
                   </select>
                 </td>
-                
+
                 {/* MFU name */}
                 <td>
                   <input
@@ -164,9 +223,10 @@ function CreateAssignmentTable() {
                     value={assignment.mfuDesc}
                     onChange={(e) => handleDescChange(index, 'mfuDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
                 </td>
-                
+
                 {/* Business Unit Code Dropdown */}
                 <td>
                   <select
@@ -182,7 +242,7 @@ function CreateAssignmentTable() {
                     ))}
                   </select>
                 </td>
-                
+
                 {/* Business Unit name */}
                 <td>
                   <input
@@ -190,31 +250,39 @@ function CreateAssignmentTable() {
                     value={assignment.businessUnitDesc}
                     onChange={(e) => handleDescChange(index, 'businessUnitDesc', e.target.value)}
                     className="assignment-desc-input"
+                    readOnly
                   />
+                </td>
+
+                {/* Delete Row */}
+                <td>
+                  {assignmentData.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveRow(index)}
+                      className="remove-row-button"
+                      title="Remove row"
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
+
+            {/* Add row button */}
+            <tr>
+              <td colSpan="7" className="add-row-cell">
+                <button
+                  onClick={handleAddRow}
+                  className="add-row-button"
+                  title="Add new row"
+                >
+                  <i className="fas fa-plus-circle"></i> Add Row
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
-        
-        {/* Action buttons container */}
-        <div className="table-action-buttons">
-          <button 
-            onClick={handleRemoveRow} 
-            className="remove-row-button"
-            disabled={assignmentData.length <= 1}
-            title="Remove last row"
-          >
-            -
-          </button>
-          <button 
-            onClick={handleAddRow} 
-            className="add-row-button"
-            title="Add new row"
-          >
-            +
-          </button>
-        </div>
       </div>
     </div>
   );

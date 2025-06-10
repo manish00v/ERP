@@ -1,62 +1,113 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import './EditAssignmentTable.css';
 
-const BusinessEntityManager = () => {
+const EditAssignmentTable = () => {
   const navigate = useNavigate();
+  const { businessEntityCode } = useParams();
   
-  // Initial state for table data
-  const [entities, setEntities] = useState([
-    {
-      businessEntityCode: 'BE01',
-      businessEntityName: 'Business Entity 1',
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit-1',
-      businessUnitCode: 'BU1',
-      businessUnitName: 'Business unit-1'
-    },
+  const [assignment, setAssignment] = useState({
+    businessEntityName: "",
+    factoryUnitCode: "",
+    factoryUnitName: "",
+    businessUnitCode: "",
+    businessUnitDesc: ""
+  });
 
-  ]);
-
-  // Sample dropdown options
-  const mfuOptions = [
-    { code: 'MFU1', description: 'Manufacturing Unit-1' },
-    { code: 'MFU2', description: 'Manufacturing Unit-2' },
-    { code: 'MFU3', description: 'Manufacturing Unit-3' }
-  ];
-
-  const businessUnitOptions = [
-    { code: 'BU1', name: 'Business unit-1' },
-    { code: 'BU2', name: 'Business unit-2' },
-    { code: 'BU3', name: 'Business unit-3' }
-  ];
-
-  // State to track edit mode
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [businessUnitOptions, setBusinessUnitOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   
-  // Handler for Edit button
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch dropdown options
+        const [mfuRes, buRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/factory-units'),
+          axios.get('http://localhost:3003/api/business-units')
+        ]);
+
+        setMfuOptions(mfuRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          description: item.factoryUnitName
+        })));
+
+        setBusinessUnitOptions(buRes.data.map(item => ({
+          code: item.businessUnitCode,
+          name: item.businessUnitDesc || item.businessUnitName
+        })));
+
+        // Fetch existing assignment if businessEntityCode exists
+        if (businessEntityCode) {
+          const assignmentRes = await axios.get(
+            `http://localhost:3003/api/business-entities/${businessEntityCode}`
+          );
+          setAssignment({
+            businessEntityName: assignmentRes.data.businessEntityName || "",
+            factoryUnitCode: assignmentRes.data.factoryUnitCode || "",
+            factoryUnitName: assignmentRes.data.factoryUnitName || "",
+            businessUnitCode: assignmentRes.data.businessUnitCode || "",
+            businessUnitDesc: assignmentRes.data.businessUnitDesc || ""
+          });
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message || 'Failed to load data');
+        setIsLoading(false);
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    fetchData();
+  }, [businessEntityCode]);
+
+  const handleEdit = () => setIsEditing(true);
   
-  // Handler for Save button
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save the data to a backend
-    alert('Changes saved successfully!');
-  };
-  
-  // Handler for Cancel button
-  const handleCancel = () => {
-    if (!isEditing) {
-      // When not in edit mode (paired with Edit button), navigate back
-      navigate('/BUMFUBE');
-    } else {
-      // When in edit mode (paired with Save button), just cancel editing
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare data for API - structure according to backend requirements
+      const dataToSave = {
+        businessEntityName: assignment.businessEntityName,
+        factoryUnitCode: assignment.factoryUnitCode,
+        businessUnitCode: assignment.businessUnitCode
+      };
+
+      const url = businessEntityCode 
+        ? `http://localhost:3003/api/business-entities/${businessEntityCode}`
+        : 'http://localhost:3003/api/business-entities';
+
+      const method = businessEntityCode ? 'put' : 'post';
+
+      await axios[method](url, dataToSave);
+
       setIsEditing(false);
-      // You might want to reset any unsaved changes here
+      setIsLoading(false);
+      alert('Assignment saved successfully!');
+      navigate('/BUMFUBE');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to save data');
+      setIsLoading(false);
+      console.error('Error saving data:', err);
     }
   };
+  
+  const handleCancel = () => {
+    if (!isEditing) {
+      navigate('/BUMFUBE');
+    } else {
+      setIsEditing(false);
+    }
+  };
+
+  if (isLoading) return <div className="business-entity-container">Loading...</div>;
+  if (error) return <div className="business-entity-container">Error: {error}</div>;
 
   return (
     <div className="business-entity-container">
@@ -64,19 +115,11 @@ const BusinessEntityManager = () => {
         <div className="button-row">
           <div className="left-buttons">
             {!isEditing ? (
-              <button onClick={handleEdit} className="edit-button">
-                Edit
-              </button>
+              <button onClick={handleEdit} className="edit-button">Edit</button>
             ) : (
-              <button onClick={handleSave} className="save-button">
-                Save
-              </button>
+              <button onClick={handleSave} className="save-button">Save</button>
             )}
-            <button onClick={handleCancel} className="cancel-button">
-              Cancel
-            </button>
-          </div>
-          <div className="right-buttons">
+            <button onClick={handleCancel} className="cancel-button">Cancel</button>
           </div>
         </div>
         
@@ -85,7 +128,7 @@ const BusinessEntityManager = () => {
             <thead>
               <tr>
                 <th>Business Entity Code</th>
-                <th>Business Entity name</th>
+                <th>Business Entity Name</th>
                 <th>MFU Code</th>
                 <th>MFU name</th>
                 <th>Business unit code</th>
@@ -93,113 +136,94 @@ const BusinessEntityManager = () => {
               </tr>
             </thead>
             <tbody>
-              {entities.map((entity, index) => (
-                <tr key={index}>
-                  <td>
-                    {entity.businessEntityCode}
-                  </td>
-                  <td className="name-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={entity.businessEntityName}
-                        onChange={(e) => {
-                          const updatedEntities = [...entities];
-                          updatedEntities[index].businessEntityName = e.target.value;
-                          setEntities(updatedEntities);
-                        }}
-                      />
-                    ) : (
-                      entity.businessEntityName
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={entity.mfuCode}
-                        onChange={(e) => {
-                          const updatedEntities = [...entities];
-                          updatedEntities[index].mfuCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedMfu = mfuOptions.find(opt => opt.code === e.target.value);
-                          if (selectedMfu) {
-                            updatedEntities[index].mfuDescription = selectedMfu.description;
-                          }
-                          setEntities(updatedEntities);
-                        }}
-                      >
-                        {mfuOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      entity.mfuCode
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={entity.mfuDescription}
-                        onChange={(e) => {
-                          const updatedEntities = [...entities];
-                          updatedEntities[index].mfuDescription = e.target.value;
-                          setEntities(updatedEntities);
-                        }}
-                      />
-                    ) : (
-                      entity.mfuDescription
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={entity.businessUnitCode}
-                        onChange={(e) => {
-                          const updatedEntities = [...entities];
-                          updatedEntities[index].businessUnitCode = e.target.value;
-                          // Auto-fill name when code is selected
-                          const selectedBu = businessUnitOptions.find(opt => opt.code === e.target.value);
-                          if (selectedBu) {
-                            updatedEntities[index].businessUnitName = selectedBu.name;
-                          }
-                          setEntities(updatedEntities);
-                        }}
-                      >
-                        {businessUnitOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      entity.businessUnitCode
-                    )}
-                  </td>
-                  <td className="name-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={entity.businessUnitName}
-                        onChange={(e) => {
-                          const updatedEntities = [...entities];
-                          updatedEntities[index].businessUnitName = e.target.value;
-                          setEntities(updatedEntities);
-                        }}
-                      />
-                    ) : (
-                      entity.businessUnitName
-                    )}
-                  </td>
-                </tr>
-              ))}
+              <tr>
+                <td>{businessEntityCode || "New Assignment"}</td>
+                <td>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      className="editable-input"
+                      value={assignment.businessEntityName}
+                      onChange={(e) => setAssignment({
+                        ...assignment,
+                        businessEntityName: e.target.value
+                      })}
+                    />
+                  ) : (
+                    assignment.businessEntityName
+                  )}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.factoryUnitCode}
+                      onChange={(e) => {
+                        const selectedMfu = mfuOptions.find(opt => opt.code === e.target.value);
+                        setAssignment({
+                          ...assignment,
+                          factoryUnitCode: e.target.value,
+                          factoryUnitName: selectedMfu?.description || ""
+                        });
+                      }}
+                    >
+                      <option value="">Select MFU</option>
+                      {mfuOptions.map((option) => (
+                        <option key={option.code} value={option.code}>{option.code}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.factoryUnitCode
+                  )}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <input 
+                      type="text" 
+                      className="editable-input"
+                      value={assignment.factoryUnitName}
+                      readOnly
+                    />
+                  ) : (
+                    assignment.factoryUnitName
+                  )}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.businessUnitCode}
+                      onChange={(e) => {
+                        const selectedBu = businessUnitOptions.find(opt => opt.code === e.target.value);
+                        setAssignment({
+                          ...assignment,
+                          businessUnitCode: e.target.value,
+                          businessUnitDesc: selectedBu?.name || ""
+                        });
+                      }}
+                    >
+                      <option value="">Select Business Unit</option>
+                      {businessUnitOptions.map((option) => (
+                        <option key={option.code} value={option.code}>{option.code}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.businessUnitCode
+                  )}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <input 
+                      type="text" 
+                      className="editable-input"
+                      value={assignment.businessUnitDesc}
+                      readOnly
+                    />
+                  ) : (
+                    assignment.businessUnitDesc
+                  )}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -208,4 +232,4 @@ const BusinessEntityManager = () => {
   );
 };
 
-export default BusinessEntityManager;
+export default EditAssignmentTable;

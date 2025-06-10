@@ -1,15 +1,17 @@
 import { useState, useContext, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContext";
 import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 import { FaEdit, FaSave } from "react-icons/fa";
-
+import axios from "axios";
 
 export default function EditSalesOfficeForm() {
     const { setGoBackUrl } = useContext(FormPageHeaderContext);
+    const { salesOfficeCode } = useParams();
     const [formData, setFormData] = useState({
-        officeCode: "",
-        officeDescription: "",
+        salesOfficeCode: "",
+        salesOfficeDesc: "",
         street1: "",
         street2: "",
         city: "",
@@ -18,31 +20,42 @@ export default function EditSalesOfficeForm() {
         country: "",
         pinCode: ""
     });
-    const [errors, setErrors] = useState({}); // For form field validation
+    const [errors, setErrors] = useState({});
     const [isEditing, setIsEditing] = useState(false);
     const [originalData, setOriginalData] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    // Set the go back URL when component mounts
+    // Set the go back URL and fetch data when component mounts
     useEffect(() => {
         setGoBackUrl("/displaySalesOffice");
+        
+        if (!salesOfficeCode) {
+            setErrorMessage("No sales office code provided in URL");
+            setIsLoading(false);
+            return;
+        }
 
-        const mockData = {
-          officeCode: "ABC1",
-          officeDescription: "Sample Business",
-          street1: "123 Main St",
-          street2: "Apt 4B",
-          city: "Mumbai",
-          state: "Maharashtra",
-          region: "Western Asia",
-          country: "India",
-          pinCode: "400001",
-        };
-        setFormData(mockData);
-        setOriginalData(mockData);
-      }, [setGoBackUrl]);
+        fetchSalesOfficeData();
+    }, [setGoBackUrl, salesOfficeCode]);
 
+    const fetchSalesOfficeData = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.get(
+                `http://localhost:3003/api/sales-offices/${salesOfficeCode}`
+            );
+            setFormData(response.data);
+            setOriginalData(response.data);
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Error fetching sales office data:", error);
+            setErrorMessage(`Failed to load sales office data for code: ${salesOfficeCode}`);
+            setIsLoading(false);
+        }
+    };
 
-    const indianCities = [
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -92,18 +105,15 @@ export default function EditSalesOfficeForm() {
          "Vatican City", "Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Hanoi", "Ho Chi Minh City", "Da Nang", "Hai Phong", "Sana'a", "Aden", "Taiz", "Al Hudaydah", "Lusaka", "Ndola", "Kitwe", "Livingstone", "Harare", "Bulawayo", "Chitungwiza", "Mutare"
     
       ];
-    
-
-    
 
     const validateField = (name, value) => {
         switch (name) {
-            case 'officeCode':
+            case 'salesOfficeCode':
                 if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
                     return 'Sales Office Code must be exactly 4 alphanumeric characters';
                 }
                 break;
-            case 'officeDescription':
+            case 'salesOfficeDesc':
                 if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
                     return 'Description must be alphanumeric and up to 30 characters';
                 }
@@ -138,204 +148,249 @@ export default function EditSalesOfficeForm() {
     };
 
     const handleChange = (e) => {
-      if (!isEditing) return;
-      
-      const { name, value } = e.target;
-  
-      // Validate the field
-      const error = validateField(name, value);
-      setErrors((prev) => ({
-        ...prev,
-        [name]: error,
-      }));
-  
-      // If country changes, reset city
-      if (name === "country") {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-          city: "" // Reset city when country changes
+        if (!isEditing) return;
+        
+        const { name, value } = e.target;
+
+        // Validate the field
+        const error = validateField(name, value);
+        setErrors((prev) => ({
+            ...prev,
+            [name]: error,
         }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      }
-    };
-  
-    const handleSubmit = (e) => {
-      e.preventDefault();
-  
-      let formValid = true;
-      const newErrors = {};
-  
-      Object.keys(formData).forEach((key) => {
-        const error = validateField(key, formData[key]);
-        if (error) {
-          newErrors[key] = error;
-          formValid = false;
+
+        // If country changes, reset city
+        if (name === "country") {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+                city: "" // Reset city when country changes
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
         }
-      });
-  
-      setErrors(newErrors);
-  
-      if (formValid) {
-        console.log("Form data valid, ready to submit:", formData);
-        alert(" Sales Office updated successfully!");
-        setOriginalData(formData);
-        setIsEditing(false);
-      } else {
-        alert("Please fix the errors in the form before submitting.");
-      }
     };
-  
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        let formValid = true;
+        const newErrors = {};
+
+        Object.keys(formData).forEach((key) => {
+            const error = validateField(key, formData[key]);
+            if (error) {
+                newErrors[key] = error;
+                formValid = false;
+            }
+        });
+
+        setErrors(newErrors);
+
+        if (formValid) {
+            try {
+            const payload = {
+                salesOfficeDesc: formData.salesOfficeDesc,
+                street1: formData.street1,
+                street2: formData.street2,
+                city: formData.city,
+                state: formData.state,
+                region: formData.region,
+                country: formData.country,
+                pinCode: formData.pinCode
+
+                     };
+                const response = await axios.put(
+                    `http://localhost:3003/api/sales-offices/${salesOfficeCode}`,
+                    payload
+                );
+                alert("Sales Office updated successfully!");
+                setOriginalData(formData);
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Error updating sales office:", error);
+                alert(`Failed to update sales office: ${error.response?.data?.message || error.message}`);
+            }
+        } else {
+            alert("Please fix the errors in the form before submitting.");
+        }
+    };
+
     const handleEdit = () => {
-      setIsEditing(true);
+        setIsEditing(true);
     };
 
-   
-    return (
-<>
-        
-<div className="container">
-        <div className="edit-controls">
-          {isEditing ? (
-            <button 
-              type="submit" 
-              form="salesOfficeForm" 
-              className="save-button-edit-page"
-            >
-              <FaSave /> Save
-            </button>
-          ) : (
-            <button 
-              type="button" 
-              className="edit-button-edit-page" 
-              onClick={handleEdit}
-            >
-              <FaEdit /> Edit
-            </button>
-          )}
-        </div>
-        
-        <form id="salesOfficeForm" onSubmit={handleSubmit}>
-          {/* Sales office Entity Details */}
-          <div className="header-box">
-            <h2>Sales Office Details</h2>
-            <div className="data-container">
-              <div className="data">
-                <label htmlFor="officeCode">Sales OfficeCode*</label>
-                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Sales office Code must be exactly 4 digits. <br />
-                    2- Sales office Code must be unique. <br />
-                    3- Sales office Code must not contain any special characters.  <br />
-                    4- Sales office Code must not contain any spaces. <br /> 
-                    5- Sales office Code once created then it can be not delete. <br />
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  id="officeCode"
-                  name="officeCode"
-                  value={formData.officeCode}
-                  onChange={handleChange}
-                  maxLength={4}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.officeCode && (
-                  <span className="error">{errors.officeCode}</span>
-                )}
-              </div>
-              <div className="data">
-                <label htmlFor="officeDescription">Sales Office Description*</label>
-                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    Sales Office Description must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  id="officeDescriptione"
-                  name="officeDescription"
-                  value={formData.officeDescription}
-                  onChange={handleChange}
-                  maxLength={30}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.officeDescription && (
-                  <span className="error">{errors.officeDescription}</span>
-                )}
-              </div>
+    if (!salesOfficeCode) {
+        return (
+            <div className="error-container">
+                <h2>Error</h2>
+                <p>No sales office code provided in URL.</p>
+                <p>Please access this page through the proper navigation flow.</p>
+                <Link to="/displaySalesOffice" className="back-link">
+                    Back to Sales Offices
+                </Link>
             </div>
-          </div>
+        );
+    }
 
-          <div className="item-box">
-            <h2>Address Details</h2>
-            <div className="data-container">
-              <div className="data">
-                <label htmlFor="street1">Street 1</label>
-                <div className="input-container">
-                  <textarea
-                    type="text"
-                    id="street1"
-                    name="street1"
-                    value={formData.street1}
-                    onChange={handleChange}
-                    maxLength={50}
-                    placeholder="Street 1"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
-                    readOnly={!isEditing}
-                  />
-                  {errors.street1 && (
-                    <span className="error">{errors.street1}</span>
-                  )}
-                </div>
-              </div>
-              <div className="data">
-                <label htmlFor="street2">Street 2</label>
-                <div className="input-container">
-                  <textarea
-                    type="text"
-                    id="street2"
-                    name="street2"
-                    value={formData.street2}
-                    onChange={handleChange}
-                    maxLength={50}
-                    placeholder="Street 2"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
-                    readOnly={!isEditing}
-                  />
-                  {errors.street2 && (
-                    <span className="error">{errors.street2}</span>
-                  )}
-                </div>
-              </div>
-              <div className="data">
-                <label htmlFor="state">State*</label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  maxLength={30}
-                  required
-                  placeholder="State"
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.state && <span className="error">{errors.state}</span>}
-              </div>
+    if (isLoading) {
+        return <div className="loading">Loading sales office data...</div>;
+    }
 
-              <div className="data">
+    if (errorMessage) {
+        return (
+            <div className="error-container">
+                <h2>Error</h2>
+                <p>{errorMessage}</p>
+                <Link to="/displaySalesOffice" className="back-link">
+                    Back to Sales Offices
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div className="container">
+                <div className="edit-controls">
+                    {isEditing ? (
+                        <button 
+                            type="submit" 
+                            form="salesOfficeForm" 
+                            className="save-button-edit-page"
+                        >
+                            <FaSave /> Save
+                        </button>
+                    ) : (
+                        <button 
+                            type="button" 
+                            className="edit-button-edit-page" 
+                            onClick={handleEdit}
+                        >
+                            <FaEdit /> Edit
+                        </button>
+                    )}
+                </div>
+                
+                <form id="salesOfficeForm" onSubmit={handleSubmit}>
+                    <div className="header-box">
+                        <h2>Sales Office Details</h2>
+                        <div className="data-container">
+                            <div className="data">
+                                <label htmlFor="salesOfficeCode">Sales Office Code*</label>
+                                <span className="info-icon-tooltip">
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        1- Sales office Code must be exactly 4 digits. <br />
+                                        2- Sales office Code must be unique. <br />
+                                        3- Sales office Code must not contain any special characters. <br />
+                                        4- Sales office Code must not contain any spaces. <br /> 
+                                        5- Sales office Code once created then it can be not delete. <br />
+                                    </span>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="salesOfficeCode"
+                                    name="salesOfficeCode"
+                                    value={formData.salesOfficeCode}
+                                    onChange={handleChange}
+                                    maxLength={4}
+                                    required
+                                    readOnly={true}
+                                    className="read-only"
+                                />
+                                {errors.salesOfficeCode && (
+                                    <span className="error">{errors.salesOfficeCode}</span>
+                                )}
+                            </div>
+                            <div className="data">
+                                <label htmlFor="salesOfficeDesc">Sales Office Description*</label>
+                                <span className="info-icon-tooltip">
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        Sales Office Description must be alphanumeric and up to 30 characters.
+                                    </span>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="salesOfficeDesc"
+                                    name="salesOfficeDesc"
+                                    value={formData.salesOfficeDesc}
+                                    onChange={handleChange}
+                                    maxLength={30}
+                                    required
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.salesOfficeDesc && (
+                                    <span className="error">{errors.salesOfficeDesc}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="item-box">
+                        <h2>Address Details</h2>
+                        <div className="data-container">
+                            <div className="data">
+                                <label htmlFor="street1">Street 1</label>
+                                <div className="input-container">
+                                    <textarea
+                                        type="text"
+                                        id="street1"
+                                        name="street1"
+                                        value={formData.street1}
+                                        onChange={handleChange}
+                                        maxLength={50}
+                                        placeholder="Street 1"
+                                        className={`resizable-input ${!isEditing ? "read-only" : ""}`}
+                                        readOnly={!isEditing}
+                                    />
+                                    {errors.street1 && (
+                                        <span className="error">{errors.street1}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="data">
+                                <label htmlFor="street2">Street 2</label>
+                                <div className="input-container">
+                                    <textarea
+                                        type="text"
+                                        id="street2"
+                                        name="street2"
+                                        value={formData.street2}
+                                        onChange={handleChange}
+                                        maxLength={50}
+                                        placeholder="Street 2"
+                                        className={`resizable-input ${!isEditing ? "read-only" : ""}`}
+                                        readOnly={!isEditing}
+                                    />
+                                    {errors.street2 && (
+                                        <span className="error">{errors.street2}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="data">
+                                <label htmlFor="state">State*</label>
+                                <input
+                                    type="text"
+                                    id="state"
+                                    name="state"
+                                    value={formData.state}
+                                    onChange={handleChange}
+                                    maxLength={30}
+                                    required
+                                    placeholder="State"
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.state && <span className="error">{errors.state}</span>}
+                            </div>
+
+                               <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -343,9 +398,6 @@ export default function EditSalesOfficeForm() {
                   value={formData.region}
                   onChange={handleChange}
                   required
-                  placeholder="Region"
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a region</option>
                   {[
@@ -387,8 +439,6 @@ export default function EditSalesOfficeForm() {
                   value={formData.country}
                   onChange={handleChange}
                   required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a country</option>
                   {[
@@ -598,65 +648,64 @@ export default function EditSalesOfficeForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
+                            <div className="data">
+                                <label htmlFor="city">City*</label>
+                                <select
+                                    id="city"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                >
+                                    <option value="">Select a city</option>
+                                    {formData.country === "India"
+                                        ? indianCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))
+                                        : otherCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.city && <span className="error">{errors.city}</span>}
+                            </div>
 
-              <div className="data">
-                <label htmlFor="pinCode">Pin Code*</label>
-                <input
-                  type="text"
-                  id="pinCode"
-                  name="pinCode"
-                  value={formData.pinCode}
-                  onChange={handleChange}
-                  maxLength={6}
-                  required
-                  placeholder="Pin Code"
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.pinCode && (
-                  <span className="error">{errors.pinCode}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </form>
-                
+                            <div className="data">
+                                <label htmlFor="pinCode">Pin Code*</label>
+                                <input
+                                    type="text"
+                                    id="pinCode"
+                                    name="pinCode"
+                                    value={formData.pinCode}
+                                    onChange={handleChange}
+                                    maxLength={6}
+                                    required
+                                    placeholder="Pin Code"
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.pinCode && (
+                                    <span className="error">{errors.pinCode}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
             <FormPageHeader 
-        onCancel={() => {
-          if (isEditing) {
-            setFormData(originalData);
-            setErrors({});
-            setIsEditing(false);
-          }
-        }}
-      />
+                onCancel={() => {
+                    if (isEditing) {
+                        setFormData(originalData);
+                        setErrors({});
+                        setIsEditing(false);
+                    }
+                }}
+            />
         </>
     );
 }

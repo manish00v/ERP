@@ -1,20 +1,15 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
 
 const SoScBuTable = () => {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [businessUnits, setBusinessUnits] = useState([]);
   const navigate = useNavigate();
-
-  // Mock data for BU-SO-SC assignments
-  const mockData = [
-    { id: 1, businessUnitCode: 'BU01', salesOfficeCode: 'SO01', salesChannelCode: 'SC01' },
-    { id: 2, businessUnitCode: 'BU02', salesOfficeCode: 'SO02', salesChannelCode: 'SC02' },
-    { id: 3, businessUnitCode: 'BU03', salesOfficeCode: 'SO03', salesChannelCode: 'SC03' },
-  ];
 
   useEffect(() => {
     setPageTitle('Business Unit - Sales Office - Sales Channel');
@@ -26,16 +21,16 @@ const SoScBuTable = () => {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  // Simulate data loading with search
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
-        // Simulate API call with search term
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setIsLoading(false);
+        const response = await axios.get('http://localhost:3003/api/business-units');
+        setBusinessUnits(response.data || []);
+        setError(null);
       } catch (err) {
-        setError('Failed to load data');
+        setError(err.message || 'Failed to load data');
+        console.error('Error fetching business units:', err);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -43,15 +38,12 @@ const SoScBuTable = () => {
     fetchData();
   }, []);
 
-  const handleCodeClick = (code) => {
-    navigate(`/editSoScBuAssignment`);
+  const handleCodeClick = (businessUnitCode) => {
+    navigate(`/editSoScBuAssignment/${businessUnitCode}`);
   };
-
 
   return (
     <div className="organizational-container-table">
-
-      {/* Assignment Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
           <thead>
@@ -72,34 +64,22 @@ const SoScBuTable = () => {
                   Error: {error}
                 </td>
               </tr>
-            ) : mockData.length > 0 ? (
-              mockData.map((entity) => (
-                <tr 
-                  key={entity.id} 
-                  className="organizational-table__row organizational-table__row--body"
-                >
+            ) : businessUnits.length > 0 ? (
+              businessUnits.map((bu) => (
+                <tr key={bu.id} className="organizational-table__row organizational-table__row--body">
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.businessUnitCode)}
-                    >
-                      {entity.businessUnitCode}
+                    <span className="organizational-table__code-link" onClick={() => handleCodeClick(bu.businessUnitCode)}>
+                      {bu.businessUnitCode}
                     </span>
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.salesOfficeCode)}
-                    >
-                      {entity.salesOfficeCode}
+                    <span className="organizational-table__code-link" onClick={() => handleCodeClick(bu.businessUnitCode)}>
+                      {bu.salesOfficeCode || 'N/A'}
                     </span>
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.salesChannelCode)}
-                    >
-                      {entity.salesChannelCode}
+                    <span className="organizational-table__code-link" onClick={() => handleCodeClick(bu.businessUnitCode)}>
+                      {bu.salesChannelId || 'N/A'}
                     </span>
                   </td>
                 </tr>
@@ -107,7 +87,7 @@ const SoScBuTable = () => {
             ) : (
               <tr>
                 <td colSpan="3" className="organizational__no-data-message">
-                  {searchTerm ? 'No matching records found' : 'No assignments found'}
+                  No business units found
                 </td>
               </tr>
             )}

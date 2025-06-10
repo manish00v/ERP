@@ -2,21 +2,14 @@ import { useState, useEffect, useContext } from "react";
 import { Search } from 'lucide-react';
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
+import { useNavigate } from "react-router-dom";
 
 function DisplaySourcingTeamPage() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [sourcingTeams, setSourcingTeams] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for sourcing teams
-  const mockData = [
-    { code: 'SCT1', description: 'Global Procurement Team', type: 'International', email: 'global.procurement@example.com' },
-    { code: 'SCT2', description: 'Local Sourcing Team', type: 'Regional', email: 'local.sourcing@example.com' },
-    { code: 'SCT3', description: 'Raw Materials Team', type: 'Specialized', email: 'raw.materials@example.com' },
-    { code: 'SCT4', description: 'Vendor Relations Team', type: 'Coordination', email: 'vendor.relations@example.com' },
-    { code: 'SCT5', description: 'Strategic Sourcing', type: 'Management', email: 'strategic.sourcing@example.com' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Sourcing Team');
@@ -28,31 +21,23 @@ function DisplaySourcingTeamPage() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchTerm = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchTerm) {
-          const filteredData = mockData.filter(team => 
-            team.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            team.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (team.type && team.type.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (team.email && team.email.toLowerCase().includes(searchTerm.toLowerCase()))
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchSourcingTeams = async (searchTerm = '') => {
+  const fetchSourcingTeams = async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const data = await mockFetch(searchTerm);
-      setSourcingTeams(data);
+      const response = await fetch('http://localhost:5003/api/sourcing-teams/');
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+
+      // Ensure keys match table expectations
+      const formatted = data.map(team => ({
+        code: team.SourcingTeamId,
+        description: team.SourcingTeamName,
+        type: team.TeamType,
+        email: team.Email
+      }));
+
+      setSourcingTeams(formatted);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch sourcing teams');
@@ -66,13 +51,14 @@ function DisplaySourcingTeamPage() {
     fetchSourcingTeams();
   }, []);
 
-  const handleCodeClick = (code) => {
-    window.location.href = `/editSourcingTeam`;
+  // const handleCodeClick = (code) => {
+  //   window.location.href = `/editSourcingTeam?code=${code}`;
+  // };
+  const handleCodeClick = (SourcingTeamId) => {
+    navigate(`/editSourcingTeam/${SourcingTeamId}`);
   };
-
   return (
     <div className="organizational-container-table">
-   
       {/* Sourcing Team Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
@@ -91,18 +77,13 @@ function DisplaySourcingTeamPage() {
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="4" className="organizational__error-message">
-                  Error: {error}
-                </td>
+                <td colSpan="4" className="organizational__error-message">Error: {error}</td>
               </tr>
             ) : sourcingTeams.length > 0 ? (
               sourcingTeams.map((team) => (
-                <tr 
-                  key={team.code} 
-                  className="organizational-table__row organizational-table__row--body"
-                >
+                <tr key={team.code} className="organizational-table__row organizational-table__row--body">
                   <td className="organizational-table__cell">
-                    <span 
+                    <span
                       className="organizational-table__code-link"
                       onClick={() => handleCodeClick(team.code)}
                     >

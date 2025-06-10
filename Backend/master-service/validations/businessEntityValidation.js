@@ -95,15 +95,25 @@ const businessEntitySchema = Joi.object({
       'any.required': 'Pin Code is required'
     }),
 
-    language: Joi.string()
-  .valid('EN', 'ES', 'FR', 'DE', 'IT', 'NL', 'ID', 'VI')
-  .required()
-  .messages({
-    'string.base': 'Language should be a string',
-    'any.only': 'Language must be one of EN, ES, FR, DE, IT, NL, ID, VI',
-    'any.required': 'Language is required'
-  }),
-
+businessUnitCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null)
+    .messages({
+      'string.base': 'Business Unit Code should be a string',
+      'string.length': 'Business Unit Code should be exactly 4 characters',
+      'string.pattern.base': 'Business Unit Code should be alphanumeric'
+    }),
+  
+  factoryUnitCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null)
+    .messages({
+      'string.base': 'Factory Unit Code should be a string',
+      'string.length': 'Factory Unit Code should be exactly 4 characters',
+      'string.pattern.base': 'Factory Unit Code should be alphanumeric'
+    }),
 });
 
 
@@ -145,6 +155,15 @@ const updateBusinessEntitySchema = Joi.object({
     'string.base': 'Language should be a string',
     'any.only': 'Language must be one of EN, ES, FR, DE, IT, NL, ID, VI'
   }),
+  businessUnitCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null),
+  
+  factoryUnitCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null),
 }).min(1); // At least one field must be provided
 
 const validateBusinessEntityCreate = (data) => {

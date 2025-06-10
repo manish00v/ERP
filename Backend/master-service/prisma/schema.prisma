@@ -20,67 +20,86 @@ model SupplierMaster {
   freight           String
 }
 
+// Business entity model - represents the top-level organizational unit
 model BusinessEntity {
-  id                  Int      @id @default(autoincrement())
-  businessEntityCode  String   @unique @db.VarChar(4)
+  id                  Int      @id @default(autoincrement())  // Auto-incrementing ID
+  businessEntityCode  String   @unique @db.VarChar(4)  // Unique business code
   businessEntityName  String   @db.VarChar(30)
   street1             String   @db.VarChar(50)
-  street2             String?  @db.VarChar(50)
+  street2             String?  @db.VarChar(50)  // Optional field
   city                String   @db.VarChar(30)
   state               String   @db.VarChar(30)
   region              String?  @db.VarChar(50)
   country             String   @db.VarChar(30)
   pinCode             String   @db.VarChar(6)
-  language            Language @default(EN) // New language field
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  businessUnitCode    String?  @db.VarChar(4) 
+  factoryUnitCode     String?  @db.VarChar(4) 
+  createdAt           DateTime @default(now())  // Auto-set creation timestamp
+  updatedAt           DateTime @updatedAt  // Auto-updated timestamp
 
-  businessUnits       BusinessUnit[]
-  factoryUnit      FactoryUnit[]
-  
+  // Relations to child units
+  businessUnits BusinessUnit[]  // One-to-many with BusinessUnit
+  factoryUnits  FactoryUnit[]   // One-to-many with FactoryUnit
+
   @@map("business_entities")
 }
 
-enum Language {
-  EN  // English
-  ES  // Spanish
-  FR  // French
-  DE  // German
-  IT  // Italian
-  NL  // Dutch
-  ID  // Indonesian
-  VI  // Vietnamese
+model BusinessUnit {
+  id                  Int       @id @default(autoincrement())
+  businessUnitCode    String    @unique @db.VarChar(4)
+  businessUnitDesc    String    @db.VarChar(30)
+  street1             String    @db.VarChar(50)
+  street2             String?   @db.VarChar(50)
+  city                String    @db.VarChar(30)
+  state               String    @db.VarChar(30)
+  region              String?   @db.VarChar(50)
+  country             String    @db.VarChar(30)
+  pinCode             String    @db.VarChar(6)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Foreign keys
+  businessEntityCode  String?   @db.VarChar(4)
+  salesChannelId      String?   @db.VarChar(4)
+  salesOfficeCode     String?   @db.VarChar(4)
+
+  // Correct relations
+  businessEntity      BusinessEntity? @relation(fields: [businessEntityCode], references: [businessEntityCode])
+  salesChannel        SalesChannel?   @relation(fields: [salesChannelId], references: [salesChannelId])
+  salesOffice         SalesOffice?    @relation(fields: [salesOfficeCode], references: [salesOfficeCode])
+
+  @@map("business_units")
 }
 
-model BusinessUnit {
-  id                  Int             @id @default(autoincrement())
-  businessUnitCode    String          @unique @db.VarChar(4)
-  businessUnitDesc    String          @db.VarChar(30)
-  street1             String          @db.VarChar(50)
-  street2             String?         @db.VarChar(50)
-  city                String          @db.VarChar(30)
-  state               String          @db.VarChar(30)
-  region              String?         @db.VarChar(50)
-  country             String          @db.VarChar(30)
-  pinCode             String          @db.VarChar(6)
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+model FactoryUnit {
+  id                  Int       @id @default(autoincrement())
+  factoryUnitCode     String    @unique @db.VarChar(4)
+  factoryUnitName     String    @db.VarChar(30)
+  street1             String    @db.VarChar(50)
+  street2             String?   @db.VarChar(50)
+  city                String    @db.VarChar(30)
+  state               String    @db.VarChar(30)
+  region              String?   @db.VarChar(50)
+  country             String    @db.VarChar(30)
+  pinCode             String    @db.VarChar(6)
+  language            Language  @default(EN)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
+  InventoryBayId       String ?      @db.VarChar(4)
+  InventoryUnitId   String ?         @db.VarChar(4)
+  sourcingUnitId   String?           @db.VarChar(4)
+  sourcingTeamId   String?           @db.VarChar(4)
 
+  // Foreign keys
+  businessEntityCode  String? @db.VarChar(4)  // Required relation to BusinessEntity
+  deliveryLocationCode String? @db.VarChar(4)  // Optional relation to DeliveryLocation
 
-  // Relationships
-  businessEntityId    Int
-  businessEntity      BusinessEntity  @relation(fields: [businessEntityId], references: [id])
-  factoryUnitId       Int?
-  factoryUnit         FactoryUnit?    @relation(fields: [factoryUnitId], references: [id])
-  salesChannelId      Int?
-  salesChannel        SalesChannel?   @relation(fields: [salesChannelId], references: [id])
-  salesOfficeId       Int?
-  salesOffice         SalesOffice?    @relation(fields: [salesOfficeId], references: [id])
+  // Relation fields
+  businessEntity    BusinessEntity? @relation(fields: [businessEntityCode], references: [businessEntityCode])
+  deliveryLocation  DeliveryLocation? @relation(fields: [deliveryLocationCode], references: [deliveryLocationCode])
 
-  // Unique constraints
-     @@map("business_units")
-     
+  @@map("factory_units")
 }
 
 model SalesOffice {
@@ -97,7 +116,9 @@ model SalesOffice {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  // Relations
   businessUnits       BusinessUnit[]
+
   @@map("sales_offices")
 }
 
@@ -115,34 +136,10 @@ model DeliveryLocation {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  // Relations
+  factoryUnits        FactoryUnit[]
+
   @@map("delivery_locations")
-}
-
-model FactoryUnit {
-  id                  Int            @id @default(autoincrement())
-  factoryUnitCode     String         @unique @db.VarChar(4)
-  factoryUnitName     String         @db.VarChar(30)
-  street1             String         @db.VarChar(50)
-  street2             String?        @db.VarChar(50)
-  city                String         @db.VarChar(30)
-  state               String         @db.VarChar(30)
-  region              String?        @db.VarChar(50)
-  country             String         @db.VarChar(30)
-  pinCode             String         @db.VarChar(6)
-  factoryPhone        String         @db.VarChar(10)
-  mobileNumber        String         @db.VarChar(10)
-  factoryEmail        String         @db.VarChar(20)
-  language            Language       @default(EN) // Added language dropdown
-  businessEntityCode  String         @db.VarChar(4) // Added business entity reference
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-
-  businessUnits       BusinessUnit[]
-  
-  // Relation to BusinessEntity (optional, for easier queries)
-  businessEntity      BusinessEntity? @relation(fields: [businessEntityCode], references: [businessEntityCode])
-
-  @@map("factory_units")
 }
 
 model SalesChannel {
@@ -152,7 +149,9 @@ model SalesChannel {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  // Relations
   businessUnits    BusinessUnit[]
+
   @@map("sales_channels")
 }
 
@@ -165,7 +164,6 @@ model SalesTeam {
 
   @@map("sales_teams")
 }
-
 
 model SalesPerson {
   id                   Int      @id @default(autoincrement())
@@ -208,4 +206,15 @@ model SourcingPerson {
   updatedAt           DateTime @updatedAt
 
   @@map("sourcing_persons")
+}
+
+enum Language {
+  EN  // English
+  ES  // Spanish
+  FR  // French
+  DE  // German
+  IT  // Italian
+  NL  // Dutch
+  ID  // Indonesian
+  VI  // Vietnamese
 }

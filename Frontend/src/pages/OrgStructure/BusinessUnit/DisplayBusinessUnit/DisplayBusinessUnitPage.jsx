@@ -1,22 +1,14 @@
 import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
-import { Search } from 'lucide-react';
 
 function BusinessUnitTable() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [businessUnits, setBusinessUnits] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for business units
-  const mockData = [
-    { code: 'BU01', name: 'Marketing Unit', entityCode: 'BE01', status: 'Active' },
-    { code: 'BU02', name: 'Sales Unit', entityCode: 'BE02', status: 'Active' },
-    { code: 'BU03', name: 'Finance Unit', entityCode: 'BE03', status: 'Inactive' },
-    { code: 'BU04', name: 'HR Unit', entityCode: 'BE04', status: 'Active' },
-    { code: 'BU05', name: 'IT Unit', entityCode: 'BE05', status: 'Active' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Business Unit');
@@ -28,29 +20,22 @@ function BusinessUnitTable() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchCode = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchCode) {
-          const filteredData = mockData.filter(unit => 
-            unit.code.toLowerCase().includes(searchCode.toLowerCase()) ||
-            unit.name.toLowerCase().includes(searchCode.toLowerCase()) ||
-            unit.entityCode.toLowerCase().includes(searchCode.toLowerCase())
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchBusinessUnits = async (code = '') => {
+  const fetchBusinessUnits = async (searchTerm = '') => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const data = await mockFetch(code);
+      const url = searchTerm 
+        ? `http://localhost:3003/api/business-units?search=${encodeURIComponent(searchTerm)}`
+        : 'http://localhost:3003/api/business-units';
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch business units');
+      }
+      
+      const data = await response.json();
       setBusinessUnits(data);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -65,13 +50,14 @@ function BusinessUnitTable() {
     fetchBusinessUnits();
   }, []);
 
-
-  const handleCodeClick = (code) => {
-    window.location.href = `/editBusinessUnit`;
+  const handleCodeClick = (businessUnitCode) => {
+    navigate(`/editBusinessUnit/${businessUnitCode}`);
   };
 
   return (
-    <div className="organizational-container-table"> 
+    <div className="organizational-container-table">
+      {/* Top navigation with search */}
+    
 
       {/* Business Unit Table */}
       <div className="organizational__table-wrapper">
@@ -80,8 +66,8 @@ function BusinessUnitTable() {
             <tr>
               <th className="organizational-table__header">Business Unit Code</th>
               <th className="organizational-table__header">Business Unit Name</th>
-              <th className="organizational-table__header">Business Entity Code</th>
-              <th className="organizational-table__header">Status</th>
+              <th className="organizational-table__header">City</th>
+              <th className="organizational-table__header">Region</th>
             </tr>
           </thead>
           <tbody>
@@ -98,25 +84,27 @@ function BusinessUnitTable() {
             ) : businessUnits.length > 0 ? (
               businessUnits.map((unit) => (
                 <tr 
-                  key={unit.code} 
+                  key={unit.businessUnitCode} 
                   className="organizational-table__row organizational-table__row--body"
                 >
                   <td className="organizational-table__cell">
                     <span 
                       className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(unit.code)}
+                      onClick={() => handleCodeClick(unit.businessUnitCode)}
                     >
-                      {unit.code}
+                      {unit.businessUnitCode}
                     </span>
                   </td>
-                  <td className="organizational-table__cell">{unit.name || '-'}</td>
-                  <td className="organizational-table__cell">{unit.entityCode || '-'}</td>
-                  <td className="organizational-table__cell">{unit.status || '-'}</td>
+                  <td className="organizational-table__cell">{unit.businessUnitDesc || '-'}</td>
+                  <td className="organizational-table__cell">{unit.city || '-'}</td>
+                  <td className="organizational-table__cell">{unit.region || '-'}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="organizational__no-data-message">No business units found</td>
+                <td colSpan="4" className="organizational__no-data-message">
+                  No business units found
+                </td>
               </tr>
             )}
           </tbody>

@@ -1,4 +1,6 @@
 import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
 
@@ -7,15 +9,8 @@ function ManufacturingFactoryUnitTable() {
   const [factoryUnits, setFactoryUnits] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for manufacturing factory units
-  const mockData = [
-    { code: 'MFU01', name: 'North Factory', location: 'Detroit', productionCapacity: '1000 units/day' },
-    { code: 'MFU02', name: 'West Factory', location: 'Los Angeles', productionCapacity: '850 units/day' },
-    { code: 'MFU03', name: 'South Factory', location: 'Houston', productionCapacity: '750 units/day' },
-    { code: 'MFU04', name: 'East Factory', location: 'Philadelphia', productionCapacity: '900 units/day' },
-    { code: 'MFU05', name: 'Central Factory', location: 'Chicago', productionCapacity: '1100 units/day' }
-  ];
+  const [searchQuery, ] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Manufacturing Factory Unit');
@@ -27,29 +22,20 @@ function ManufacturingFactoryUnitTable() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchCode = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchCode) {
-          const filteredData = mockData.filter(unit => 
-            unit.code.toLowerCase().includes(searchCode.toLowerCase()) ||
-            unit.name.toLowerCase().includes(searchCode.toLowerCase())
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchFactoryUnits = async (code = '') => {
+  const fetchFactoryUnits = async (search = "") => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const data = await mockFetch(code);
-      setFactoryUnits(data);
+      let url = "http://localhost:3003/api/factory-units";
+      
+      // If search query provided, add it as a query parameter
+      if (search) {
+        url += `?search=${encodeURIComponent(search)}`;
+      }
+
+      const response = await axios.get(url);
+      setFactoryUnits(response.data);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch manufacturing factory units');
@@ -63,13 +49,17 @@ function ManufacturingFactoryUnitTable() {
     fetchFactoryUnits();
   }, []);
 
-  const handleCodeClick = () => {
-    window.location.href = `/editManufacturingFactoryUnitForm`;
+
+  const handleCodeClick = (code) => {
+    navigate(`/editManufacturingFactoryUnitForm/${code}`);
   };
 
   return (
     <div className="organizational-container-table">
-      
+      {/* Search Bar */}
+     
+  
+
       {/* Manufacturing Factory Unit Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
@@ -77,43 +67,46 @@ function ManufacturingFactoryUnitTable() {
             <tr>
               <th className="organizational-table__header">Factory Unit Code</th>
               <th className="organizational-table__header">Factory Unit Name</th>
-              <th className="organizational-table__header">Location</th>
-              <th className="organizational-table__header">Production Capacity</th>
+              <th className="organizational-table__header">City</th>
+              <th className="organizational-table__header">Region</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="4" className="organizational__loading-message">Loading...</td>
+                <td colSpan="5" className="organizational__loading-message">Loading...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="4" className="organizational__error-message">
+                <td colSpan="5" className="organizational__error-message">
                   Error: {error}
                 </td>
               </tr>
             ) : factoryUnits.length > 0 ? (
               factoryUnits.map((unit) => (
                 <tr 
-                  key={unit.code} 
+                  key={unit.factoryUnitCode} 
                   className="organizational-table__row organizational-table__row--body"
                 >
                   <td className="organizational-table__cell">
                     <span 
                       className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(unit.code)}
+                      onClick={() => handleCodeClick(unit.factoryUnitCode)}
                     >
-                      {unit.code}
+                      {unit.factoryUnitCode}
                     </span>
                   </td>
-                  <td className="organizational-table__cell">{unit.name || '-'}</td>
-                  <td className="organizational-table__cell">{unit.location || '-'}</td>
-                  <td className="organizational-table__cell">{unit.productionCapacity || '-'}</td>
+                  <td className="organizational-table__cell">{unit.factoryUnitName || '-'}</td>
+                  <td className="organizational-table__cell">{unit.city || '-'}</td>
+                  <td className="organizational-table__cell">{unit.region || '-'}</td>
+                  
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="organizational__no-data-message">No manufacturing factory units found</td>
+                <td colSpan="5" className="organizational__no-data-message">
+                  {searchQuery ? "No matching factory units found" : "No factory units available"}
+                </td>
               </tr>
             )}
           </tbody>

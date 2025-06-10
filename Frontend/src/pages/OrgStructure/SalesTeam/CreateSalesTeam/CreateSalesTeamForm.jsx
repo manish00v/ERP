@@ -2,34 +2,30 @@ import { useState } from "react";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 
 export default function CreateSalesTeamForm() {
-    
     const [formData, setFormData] = useState({
-        teamCode: "",
-        teamName: "",
-      
+        salesTeamCode: "",
+        salesTeamName: "",
     });
 
     const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-      const handleCancel = () => {
+    const handleCancel = () => {
         window.location.href = '/displaySalesTeamPage'; 
-      };
-      
+    };
 
     const validateField = (name, value) => {
         switch (name) {
-            case 'teamCode':
+            case 'salesTeamCode':
                 if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
                     return 'Sales Team Code must be exactly 4 alphanumeric characters';
                 }
                 break;
-            case 'teamName':
+            case 'salesTeamName':
                 if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
                     return 'Sales Team Name must be alphanumeric and up to 30 characters';
                 }
                 break;
-          
             default:
                 return '';
         }
@@ -46,117 +42,134 @@ export default function CreateSalesTeamForm() {
             [name]: error
         }));
 
-        setFormData((prevData) => ({
+        setFormData(prevData => ({
             ...prevData,
             [name]: value,
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         
         // Validate all fields before submission
         let formValid = true;
         const newErrors = {};
         
         Object.keys(formData).forEach(key => {
-            if (key !== 'status') { // Skip validation for status dropdown
-                const error = validateField(key, formData[key]);
-                if (error) {
-                    newErrors[key] = error;
-                    formValid = false;
-                }
+            const error = validateField(key, formData[key]);
+            if (error) {
+                newErrors[key] = error;
+                formValid = false;
             }
         });
         
         setErrors(newErrors);
         
-        if (formValid) {
-            // In a real app, you would send this data to your backend
-            console.log("Form data valid, ready to submit:", formData);
-            alert("Sales Team created successfully (simulated)!");
+        if (!formValid) {
+            setIsSubmitting(false);
+            alert("Please fix the errors in the form before submitting.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3003/api/sales-teams', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    salesTeamCode: formData.salesTeamCode,
+                    salesTeamName: formData.salesTeamName
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create sales team');
+            }
+
+            const result = await response.json();
+            alert("Sales Team created successfully!");
             // Reset form after successful submission
             setFormData({
-                teamCode: "",
-                teamName: "",
-                
+                salesTeamCode: "",
+                salesTeamName: "",
             });
-        } else {
-            alert("Please fix the errors in the form before submitting.");
+            // Optionally redirect to display page
+            // window.location.href = '/displaySalesTeamPage';
+        } catch (error) {
+            console.error('Error creating sales team:', error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-<>
-
-      
-
-        <div className="container">
-           
-
+        <>
+            <div className="container">
                 <form onSubmit={handleSubmit}>
                     {/* Sales Team Details */}
                     <div className="header-box">
                         <h2>Sales Team Information</h2>
                         <div className="data-container">
                             <div className="data">
-                                <label htmlFor="teamCode">Sales Team Code*</label>
+                                <label htmlFor="salesTeamCode">Sales Team Code*</label>
                                 <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Sales Team Code must be exactly 4 digits. <br />
-                    2- Sales Team Code must be unique. <br />
-                    3- Sales Team Code must not contain any special characters.  <br />
-                    4- Sales Team Code must not contain any spaces. <br /> 
-                    5- Sales Team Code once created then it can be not delete. <br />
-                  </span>
-                </span>
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        1- Sales Team Code must be exactly 4 digits. <br />
+                                        2- Sales Team Code must be unique. <br />
+                                        3- Sales Team Code must not contain any special characters.  <br />
+                                        4- Sales Team Code must not contain any spaces. <br /> 
+                                        5- Sales Team Code once created then it can be not delete. <br />
+                                    </span>
+                                </span>
                                 <input
                                     type="text"
-                                    id="teamCode"
-                                    name="teamCode"
-                                    value={formData.teamCode}
+                                    id="salesTeamCode"
+                                    name="salesTeamCode"
+                                    value={formData.salesTeamCode}
                                     onChange={handleChange}
                                     maxLength={4}
                                     required
                                 />
-                                {errors.teamCode && <span className="error">{errors.teamCode}</span>}
+                                {errors.salesTeamCode && <span className="error">{errors.salesTeamCode}</span>}
                             </div>
                             <div className="data">
-                                <label htmlFor="teamName">Sales Team Name*</label>
+                                <label htmlFor="salesTeamName">Sales Team Name*</label>
                                 <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                  Sales Team Name must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        Sales Team Name must be alphanumeric and up to 30 characters.
+                                    </span>
+                                </span>
                                 <input
                                     type="text"
-                                    id="teamName"
-                                    name="teamName"
-                                    value={formData.teamName}
+                                    id="salesTeamName"
+                                    name="salesTeamName"
+                                    value={formData.salesTeamName}
                                     onChange={handleChange}
                                     maxLength={30}
                                     required
                                 />
-                                {errors.teamName && <span className="error">{errors.teamName}</span>}
+                                {errors.salesTeamName && <span className="error">{errors.salesTeamName}</span>}
                             </div>
                         </div>
                     </div>
 
-                    
-
                     {/* Submit Button */}
                     <div className="submit-button">
-            <button type="submit">Save</button>
-          </div>
+                        <button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
                 </form>
                 <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
+                    Cancel
+                </button>
             </div>
-      
-            {/* <FormPageHeader /> */}
         </>
     );
 }

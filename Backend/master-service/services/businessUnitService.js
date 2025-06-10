@@ -17,55 +17,23 @@ class BusinessUnitService {
             throw new Error('Business Unit Code already exists');
         }
 
-        // Check Business Entity exists
-        const businessEntity = await prisma.businessEntity.findUnique({
-            where: { businessEntityCode: data.businessEntityCode }
-        });
-        if (!businessEntity) {
-            throw new Error(`Business Entity with code ${data.businessEntityCode} not found`);
-        }
-
-        // Handle Factory Unit if provided
-        let factoryUnitId = null;
-        if (data.factoryUnitCode) {
-            const factoryUnit = await prisma.factoryUnit.findUnique({
-                where: { factoryUnitCode: data.factoryUnitCode }
-            });
-            if (!factoryUnit) {
-                throw new Error(`Factory Unit with code ${data.factoryUnitCode} not found`);
-            }
-            factoryUnitId = factoryUnit.id;
-        }
-
         // Handle Sales relationships if provided
-        let salesChannelId = null, salesOfficeId = null;
-        if (data.salesChannelId || data.salesChannelCode || data.salesOfficeCode) {
-            // Validate sales channel
-            if (!data.salesChannelId && !data.salesChannelCode) {
-                throw new Error('Either salesChannelId or salesChannelCode must be provided');
+        if (data.salesChannelId || data.salesOfficeCode) {
+            // Validate both fields are provided
+            if (!data.salesChannelId || !data.salesOfficeCode) {
+                throw new Error('Both Sales Channel ID and Sales Office Code must be provided');
             }
 
-            const salesChannelWhere = data.salesChannelId 
-                ? { id: parseInt(data.salesChannelId) }
-                : { salesChannelId: data.salesChannelCode };
-
+            // Validate sales channel exists
             const salesChannel = await prisma.salesChannel.findUnique({
-                where: salesChannelWhere
+                where: { salesChannelId: data.salesChannelId }
             });
             
             if (!salesChannel) {
-                throw new Error(
-                    data.salesChannelId 
-                        ? `Sales Channel with ID ${data.salesChannelId} not found`
-                        : `Sales Channel with code ${data.salesChannelCode} not found`
-                );
+                throw new Error(`Sales Channel with ID ${data.salesChannelId} not found`);
             }
 
-            // Validate sales office
-            if (!data.salesOfficeCode) {
-                throw new Error('salesOfficeCode is required for sales relationships');
-            }
-
+            // Validate sales office exists
             const salesOffice = await prisma.salesOffice.findUnique({
                 where: { salesOfficeCode: data.salesOfficeCode }
             });
@@ -73,18 +41,10 @@ class BusinessUnitService {
             if (!salesOffice) {
                 throw new Error(`Sales Office with code ${data.salesOfficeCode} not found`);
             }
-
-            salesChannelId = salesChannel.id;
-            salesOfficeId = salesOffice.id;
-        }
-
-        // Final validation to ensure either factory or sales relationship exists
-        if (!factoryUnitId && !(salesChannelId && salesOfficeId)) {
-            throw new Error('Business Unit must have either a Factory Unit OR both Sales Channel and Sales Office');
         }
 
         // Create the business unit
-        return prisma.businessUnit.create({
+        const createdUnit = await prisma.businessUnit.create({
             data: {
                 businessUnitCode: data.businessUnitCode,
                 businessUnitDesc: data.businessUnitDesc,
@@ -95,41 +55,60 @@ class BusinessUnitService {
                 region: data.region,
                 country: data.country,
                 pinCode: data.pinCode,
-                businessEntityId: businessEntity.id,
-                factoryUnitId,
-                salesChannelId,
-                salesOfficeId
+                salesChannelId: data.salesChannelId,
+                salesOfficeCode: data.salesOfficeCode
             },
             include: {
-                businessEntity: { select: { businessEntityCode: true, businessEntityName: true } },
-                factoryUnit: { select: { factoryUnitCode: true, factoryUnitName: true } },
-                salesChannel: { select: { salesChannelId: true, salesChannelName: true } },
-                salesOffice: { select: { salesOfficeCode: true, salesOfficeDesc: true } }
+                salesChannel: true,
+                salesOffice: true
             }
         });
+
+        // Transform the response
+        return {
+            ...createdUnit,
+            salesChannelId: createdUnit.salesChannel?.salesChannelId || null,
+            salesOfficeCode: createdUnit.salesOffice?.salesOfficeCode || null,
+            salesChannel: undefined,
+            salesOffice: undefined
+        };
     }
 
     static async getAllBusinessUnits() {
-        return prisma.businessUnit.findMany({
+        const units = await prisma.businessUnit.findMany({
             include: {
-                businessEntity: { select: { businessEntityCode: true, businessEntityName: true } },
-                factoryUnit: { select: { factoryUnitCode: true, factoryUnitName: true } },
-                salesChannel: { select: { salesChannelId: true, salesChannelName: true } },
-                salesOffice: { select: { salesOfficeCode: true, salesOfficeDesc: true } }
+                salesChannel: true,
+                salesOffice: true
             }
         });
+
+        return units.map(unit => ({
+            ...unit,
+            salesChannelId: unit.salesChannel?.salesChannelId || null,
+            salesOfficeCode: unit.salesOffice?.salesOfficeCode || null,
+            salesChannel: undefined,
+            salesOffice: undefined
+        }));
     }
 
     static async getBusinessUnitByCode(code) {
-        return prisma.businessUnit.findUnique({
+        const unit = await prisma.businessUnit.findUnique({
             where: { businessUnitCode: code },
             include: {
-                businessEntity: { select: { businessEntityCode: true, businessEntityName: true } },
-                factoryUnit: { select: { factoryUnitCode: true, factoryUnitName: true } },
-                salesChannel: { select: { salesChannelId: true, salesChannelName: true } },
-                salesOffice: { select: { salesOfficeCode: true, salesOfficeDesc: true } }
+                salesChannel: true,
+                salesOffice: true
             }
         });
+
+        if (!unit) return null;
+
+        return {
+            ...unit,
+            salesChannelId: unit.salesChannel?.salesChannelId || null,
+            salesOfficeCode: unit.salesOffice?.salesOfficeCode || null,
+            salesChannel: undefined,
+            salesOffice: undefined
+        };
     }
 
     static async updateBusinessUnitByCode(code, data) {
@@ -158,7 +137,9 @@ class BusinessUnitService {
             state: data.state,
             region: data.region,
             country: data.country,
-            pinCode: data.pinCode
+            pinCode: data.pinCode,
+            salesChannelId: data.salesChannelId,
+            salesOfficeCode: data.salesOfficeCode
         };
 
         Object.keys(updateData).forEach(key => {
@@ -167,16 +148,22 @@ class BusinessUnitService {
             }
         });
 
-        return prisma.businessUnit.update({
+        const updatedUnit = await prisma.businessUnit.update({
             where: { businessUnitCode: code },
             data: updateData,
             include: {
-                businessEntity: { select: { businessEntityCode: true, businessEntityName: true } },
-                factoryUnit: { select: { factoryUnitCode: true, factoryUnitName: true } },
-                salesChannel: { select: { salesChannelId: true, salesChannelName: true } },
-                salesOffice: { select: { salesOfficeCode: true, salesOfficeDesc: true } }
+                salesChannel: true,
+                salesOffice: true
             }
         });
+
+        return {
+            ...updatedUnit,
+            salesChannelId: updatedUnit.salesChannel?.salesChannelId || null,
+            salesOfficeCode: updatedUnit.salesOffice?.salesOfficeCode || null,
+            salesChannel: undefined,
+            salesOffice: undefined
+        };
     }
 
     static async deleteBusinessUnitByCode(code) {

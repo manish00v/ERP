@@ -1,21 +1,16 @@
 import { useState, useEffect, useContext } from "react";
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
+import { useNavigate } from "react-router-dom";
+
+
 
 function SalesOfficeTable() {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [salesOffices, setSalesOffices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for sales offices
-  const mockData = [
-    { code: 'SO01', name: 'North Sales Office', region: 'Northeast', manager: 'John Smith', status: 'Active' },
-    { code: 'SO02', name: 'West Sales Office', region: 'West', manager: 'Sarah Johnson', status: 'Active' },
-    { code: 'SO03', name: 'South Sales Office', region: 'South', manager: 'Mike Williams', status: 'Inactive' },
-    { code: 'SO04', name: 'East Sales Office', region: 'Northeast', manager: 'Emily Brown', status: 'Active' },
-    { code: 'SO05', name: 'Central Sales Office', region: 'Midwest', manager: 'David Jones', status: 'Active' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Sales Office');
@@ -27,31 +22,27 @@ function SalesOfficeTable() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchCode = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchCode) {
-          const filteredData = mockData.filter(office => 
-            office.code.toLowerCase().includes(searchCode.toLowerCase()) ||
-            office.name.toLowerCase().includes(searchCode.toLowerCase()) ||
-            office.region.toLowerCase().includes(searchCode.toLowerCase()) ||
-            office.manager.toLowerCase().includes(searchCode.toLowerCase())
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchSalesOffices = async (code = '') => {
+  const fetchSalesOffices = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const data = await mockFetch(code);
-      setSalesOffices(data);
+      const response = await fetch('http://localhost:3003/api/sales-offices/');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      // Transform the response to match table structure
+      const transformed = data.map(item => ({
+        code: item.salesOfficeCode,
+        name: item.salesOfficeDesc,
+        city: item.city,
+        region: item.region || '-',
+    
+      }));
+
+      setSalesOffices(transformed);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch sales offices');
@@ -65,10 +56,13 @@ function SalesOfficeTable() {
     fetchSalesOffices();
   }, []);
 
-  const handleCodeClick = (code) => {
-    window.location.href = `/editSalesOffice`;
-  };
+ 
 
+  
+  const handleCodeClick = (salesOfficeCode) => {
+    navigate(`/editSalesOffice/${salesOfficeCode}`);
+  };
+  
   return (
     <div className="organizational-container-table">
       {/* Sales Office Table */}
@@ -78,9 +72,8 @@ function SalesOfficeTable() {
             <tr>
               <th className="organizational-table__header">Sales Office Code</th>
               <th className="organizational-table__header">Sales Office Name</th>
+              <th className="organizational-table__header">City</th>
               <th className="organizational-table__header">Region</th>
-              <th className="organizational-table__header">Manager</th>
-              <th className="organizational-table__header">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -109,9 +102,9 @@ function SalesOfficeTable() {
                     </span>
                   </td>
                   <td className="organizational-table__cell">{office.name || '-'}</td>
+                  <td className="organizational-table__cell">{office.city || '-'}</td>
                   <td className="organizational-table__cell">{office.region || '-'}</td>
-                  <td className="organizational-table__cell">{office.manager || '-'}</td>
-                  <td className="organizational-table__cell">{office.status || '-'}</td>
+               
                 </tr>
               ))
             ) : (

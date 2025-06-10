@@ -3,9 +3,9 @@ const prisma = new PrismaClient();
 
 class InventoryBayService {
   static async getAllInventoryBays() {
-    return await prisma.inventoryBay.findMany({
+    return await prisma.InventoryBay.findMany({
       include: {
-        inventoryUnit: {
+        InventoryUnit: {
           select: {
             InventoryUnitId: true,
             InventoryUnitName: true
@@ -15,11 +15,11 @@ class InventoryBayService {
     });
   }
 
-  static async getInventoryBayById(id) {
-    return await prisma.inventoryBay.findUnique({
-      where: { id },
+  static async getInventoryBayById(InventoryBayId) {
+    return await prisma.InventoryBay.findUnique({
+      where: { InventoryBayId },
       include: {
-        inventoryUnit: {
+        InventoryUnit: {
           select: {
             InventoryUnitId: true,
             InventoryUnitName: true
@@ -31,9 +31,9 @@ class InventoryBayService {
 
   static async createInventoryBay(data) {
     // Check if InventoryUnit exists if provided
-    if (data.inventoryUnitId) {
+    if (data.InventoryUnitId) {
       const unitExists = await prisma.inventoryUnit.findUnique({
-        where: { InventoryUnitId: data.inventoryUnitId }
+        where: { InventoryUnitId: data.InventoryUnitId }
       });
       if (!unitExists) {
         throw new Error('Inventory Unit ID does not exist');
@@ -41,11 +41,11 @@ class InventoryBayService {
     }
 
     // Check for existing bay+unit combination
-    if (data.inventoryUnitId) {
+    if (data.InventoryUnitId) {
       const existing = await prisma.inventoryBay.findFirst({
         where: {
           InventoryBayId: data.InventoryBayId,
-          inventoryUnitId: data.inventoryUnitId
+          InventoryUnitId: data.InventoryUnitId
         }
       });
       if (existing) {
@@ -63,10 +63,10 @@ class InventoryBayService {
         Region: data.Region,
         Country: data.Country,
         PinCode: data.PinCode,
-        inventoryUnitId: data.inventoryUnitId || null
+        InventoryUnitId: data.InventoryUnitId || null
       },
       include: {
-        inventoryUnit: {
+        InventoryUnit: {
           select: {
             InventoryUnitId: true,
             InventoryUnitName: true
@@ -76,14 +76,14 @@ class InventoryBayService {
     });
   }
 
-  static async updateInventoryBay(id, data) {
+  static async updateInventoryBay(InventoryBayId, data) {
     if (data.InventoryBayId) {
       throw new Error('Inventory Bay ID cannot be changed');
     }
 
-    if (data.inventoryUnitId) {
-      const unitExists = await prisma.inventoryUnit.findUnique({
-        where: { InventoryUnitId: data.inventoryUnitId }
+    if (data.InventoryUnitId) {
+      const unitExists = await prisma.InventoryUnit.findUnique({
+        where: { InventoryUnitId: data.InventoryUnitId }
       });
       if (!unitExists) {
         throw new Error('Inventory Unit ID does not exist');
@@ -91,7 +91,7 @@ class InventoryBayService {
     }
 
     return await prisma.inventoryBay.update({
-      where: { id },
+      where: { InventoryBayId },
       data: {
         InventoryBayName: data.InventoryUnitName,
         StockingType: data.StockingType,
@@ -100,23 +100,23 @@ class InventoryBayService {
         Region: data.Region,
         Country: data.Country,
         PinCode: data.PinCode,
-        inventoryUnitId: data.inventoryUnitId
+        InventoryUnitId: data.InventoryUnitId
       }
     });
   }
 
-  static async deleteInventoryBay(id) {
+  static async deleteInventoryBay(InventoryBayId) {
     return await prisma.inventoryBay.delete({
-      where: { id }
+      where: { InventoryBayId }
     });
   }
 
   // Get all bays with a specific InventoryBayId
-  static async getBaysByBayId(bayId) {
+  static async getBaysByBayId(InventoryBayId) {
     return await prisma.inventoryBay.findMany({
-      where: { InventoryBayId: bayId },
+      where: { InventoryBayId: InventoryBayId },
       include: {
-        inventoryUnit: {
+        InventoryUnit: {
           select: {
             InventoryUnitId: true,
             InventoryUnitName: true
@@ -126,10 +126,10 @@ class InventoryBayService {
     });
   }
 
-  // Get all bays containing a specific inventory unit
+  // Get all bays containing a specific Inventory unit
   static async getBaysByUnitId(unitId) {
     return await prisma.inventoryBay.findMany({
-      where: { inventoryUnitId: unitId }
+      where: { InventoryUnitId: unitId }
     });
   }
 }

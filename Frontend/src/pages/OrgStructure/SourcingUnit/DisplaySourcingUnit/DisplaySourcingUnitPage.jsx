@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from 'lucide-react';
+import axios from "axios";
 import '../../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
 
@@ -8,15 +10,7 @@ function DisplaySourcingUnitPage() {
   const [sourcingUnits, setSourcingUnits] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Mock data for sourcing units
-  const mockData = [
-    { code: 'SU001', description: 'Local Suppliers Division' },
-    { code: 'SU002', description: 'International Procurement' },
-    { code: 'SU003', description: 'Raw Materials Sourcing' },
-    { code: 'SU004', description: 'Specialty Components Team' },
-    { code: 'SU005', description: 'Vendor Relations Unit' }
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPageTitle('Sourcing Unit');
@@ -28,29 +22,13 @@ function DisplaySourcingUnitPage() {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  const mockFetch = (searchTerm = '') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (searchTerm) {
-          const filteredData = mockData.filter(unit => 
-            unit.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            unit.description.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-          resolve(filteredData);
-        } else {
-          resolve([...mockData]);
-        }
-      }, 500);
-    });
-  };
-
-  const fetchSourcingUnits = async (searchTerm = '') => {
+  const fetchSourcingUnits = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const data = await mockFetch(searchTerm);
-      setSourcingUnits(data);
+      const response = await axios.get("http://localhost:5003/api/sourcing-units");
+      setSourcingUnits(response.data);
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Failed to fetch sourcing units');
@@ -64,14 +42,12 @@ function DisplaySourcingUnitPage() {
     fetchSourcingUnits();
   }, []);
 
-  const handleCodeClick = (code) => {
-    window.location.href = `/editSourcingUnit`;
+  const handleCodeClick = (SourcingUnitId) => {
+    navigate(`/editSourcingUnit/${SourcingUnitId}`);
   };
 
   return (
     <div className="organizational-container-table">
-      
-      {/* Sourcing Unit Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
           <thead>
@@ -93,19 +69,21 @@ function DisplaySourcingUnitPage() {
               </tr>
             ) : sourcingUnits.length > 0 ? (
               sourcingUnits.map((unit) => (
-                <tr 
-                  key={unit.code} 
+                <tr
+                  key={unit.SourcingUnitId}
                   className="organizational-table__row organizational-table__row--body"
                 >
                   <td className="organizational-table__cell">
-                    <span 
+                    <span
                       className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(unit.code)}
+                      onClick={() => handleCodeClick(unit.SourcingUnitId)}
                     >
-                      {unit.code}
+                      {unit.SourcingUnitId}
                     </span>
                   </td>
-                  <td className="organizational-table__cell">{unit.description || '-'}</td>
+                  <td className="organizational-table__cell">
+                    {unit.SourcingUnitDesc || '-'}
+                  </td>
                 </tr>
               ))
             ) : (

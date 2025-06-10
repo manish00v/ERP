@@ -6,90 +6,77 @@ const {
 
 const getAllInventoryUnits = async (req, res) => {
   try {
-    const inventoryUnits = await inventoryUnitService.getAllInventoryUnits();
-    res.json(inventoryUnits);
+    const InventoryUnits = await inventoryUnitService.getAllInventoryUnits();
+    res.json(InventoryUnits);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-const getInventoryUnitById = async (req, res) => {
+const getInventoryUnitByCode = async (req, res) => {
   try {
-    const inventoryUnit = await inventoryUnitService.getInventoryUnitById(req.params.id);
-    if (!inventoryUnit) {
-      return res.status(404).json({ error: 'Inventory Unit not found' });
-    }
-    res.json(inventoryUnit);
+    const InventoryUnit = await inventoryUnitService.getInventoryUnitByCode(req.params.InventoryUnitId);
+    res.json(InventoryUnit);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.message === 'Inventory Unit not found' ? 404 : 500).json({ error: error.message });
   }
 };
 
 const getInventoryUnitsByFactoryCode = async (req, res) => {
   try {
-    const inventoryUnits = await inventoryUnitService.getInventoryUnitsByFactoryCode(req.params.code);
-    res.json(inventoryUnits);
+    const InventoryUnits = await inventoryUnitService.getInventoryUnitsByFactoryCode(req.params.factoryUnitCode);
+    res.json(InventoryUnits);
   } catch (error) {
-    if (error.message.includes('Factory Unit Code does not exist')) {
-      return res.status(404).json({ error: error.message });
-    }
-    res.status(500).json({ error: error.message });
+    const status = error.message.includes('Factory Unit Code does not exist') ? 404 : 500;
+    res.status(status).json({ error: error.message });
   }
 };
 
 const createInventoryUnit = async (req, res) => {
   try {
     const { error } = createInventoryUnitSchema.validate(req.body);
-    if (error) throw new Error(error.details.map(detail => detail.message).join(', '));
+    if (error) throw new Error(error.details[0].message);
 
-    const newInventoryUnit = await inventoryUnitService.createInventoryUnit(req.body);
+    const newInventoryUnit = await InventoryUnitService.createInventoryUnit(req.body);
     res.status(201).json(newInventoryUnit);
   } catch (error) {
-    if (error.message.includes('Factory Unit service error')) {
-      return res.status(503).json({ error: 'Factory Unit service unavailable' });
-    }
-    res.status(400).json({ error: error.message });
+    const status = error.message.includes('already exists') ? 409 : 
+                 error.message.includes('Factory Unit') ? 400 : 500;
+    res.status(status).json({ error: error.message });
   }
 };
 
-const updateInventoryUnit = async (req, res) => {
+const updateInventoryUnitByCode = async (req, res) => {
   try {
     const { error } = updateInventoryUnitSchema.validate(req.body);
-    if (error) throw new Error(error.details.map(detail => detail.message).join(', '));
+    if (error) throw new Error(error.details[0].message);
 
-    const updatedInventoryUnit = await inventoryUnitService.updateInventoryUnit(
-      req.params.id,
+    const updatedInventoryUnit = await inventoryUnitService.updateInventoryUnitByCode(
+      req.params.InventoryUnitId,
       req.body
     );
-    if (!updatedInventoryUnit) {
-      return res.status(404).json({ error: 'Inventory Unit not found' });
-    }
     res.json(updatedInventoryUnit);
   } catch (error) {
-    if (error.message.includes('Factory Unit service error')) {
-      return res.status(503).json({ error: 'Factory Unit service unavailable' });
-    }
-    res.status(400).json({ error: error.message });
+    const status = error.message === 'Inventory Unit not found' ? 404 : 
+                 error.message.includes('Factory Unit') ? 400 : 500;
+    res.status(status).json({ error: error.message });
   }
 };
 
-const deleteInventoryUnit = async (req, res) => {
+const deleteInventoryUnitByCode = async (req, res) => {
   try {
-    const deletedInventoryUnit = await inventoryUnitService.deleteInventoryUnit(req.params.id);
-    if (!deletedInventoryUnit) {
-      return res.status(404).json({ error: 'Inventory Unit not found' });
-    }
+    await inventoryUnitService.deleteInventoryUnitByCode(req.params.InventoryUnitId);
     res.json({ message: 'Inventory Unit deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.message === 'Inventory Unit not found' ? 404 : 500).json({ error: error.message });
   }
 };
 
 module.exports = {
   getAllInventoryUnits,
-  getInventoryUnitById,
+  getInventoryUnitByCode,
   getInventoryUnitsByFactoryCode,
   createInventoryUnit,
-  updateInventoryUnit,
-  deleteInventoryUnit
+  updateInventoryUnitByCode,
+  deleteInventoryUnitByCode
 };

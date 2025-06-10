@@ -1,76 +1,195 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import '../BUMFUBE/EditAssignmentTable/EditAssignmentTable.css';
 
-const MfuSuSctManager = () => {
+const EditMfuSuSctAssignmentTable = () => {
+  const { factoryUnitCode } = useParams();
   const navigate = useNavigate();
   
-  // Initial state for table data
-  const [assignments, setAssignments] = useState([
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      sourcingUnitCode: 'SU1',
-      sourcingUnitDescription: 'Sourcing Unit-1',
-      sourcingTeamCode: 'SCT1',
-      sourcingTeamDescription: 'Sourcing Team-1'
-    },
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      sourcingUnitCode: 'SU1',
-      sourcingUnitDescription: 'Sourcing Unit-1',
-      sourcingTeamCode: 'SCT2',
-      sourcingTeamDescription: 'Sourcing Team-2'
-    }
-  ]);
+  // State for table data
+  const [assignments, setAssignments] = useState([]);
+  const [originalAssignments, setOriginalAssignments] = useState([]);
 
-  // Sample dropdown options
-  const mfuOptions = [
-    { code: 'MFU1', description: 'Manufacturing Unit 1' },
-    { code: 'MFU2', description: 'Manufacturing Unit 2' },
-    { code: 'MFU3', description: 'Manufacturing Unit 3' }
-  ];
-
-  const sourcingUnitOptions = [
-    { code: 'SU1', description: 'Sourcing Unit-1' },
-    { code: 'SU2', description: 'Sourcing Unit-2' },
-    { code: 'SU3', description: 'Sourcing Unit-3' }
-  ];
-
-  const sourcingTeamOptions = [
-    { code: 'SCT1', description: 'Sourcing Team-1' },
-    { code: 'SCT2', description: 'Sourcing Team-2' },
-    { code: 'SCT3', description: 'Sourcing Team-3' }
-  ];
+  // State for dropdown options
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [SourcingUnitOptions, setSourcingUnitOptions] = useState([]);
+  const [SourcingTeamOptions, setSourcingTeamOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State to track edit mode
   const [isEditing, setIsEditing] = useState(false);
-  
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch all necessary data in parallel
+        const [factoryUnitsRes, SourcingUnitsRes, SourcingTeamsRes, assignmentsRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/factory-units'),
+          axios.get('http://localhost:5003/api/sourcing-units'),
+          axios.get('http://localhost:5003/api/sourcing-teams'),
+          factoryUnitCode ? axios.get(`http://localhost:3003/api/factory-units/${factoryUnitCode}`) : Promise.resolve(null)
+        ]);
+
+        // Set dropdown options
+        setMfuOptions(factoryUnitsRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          description: item.factoryUnitName
+        })));
+
+        setSourcingUnitOptions(SourcingUnitsRes.data.map(item => ({
+          code: item.SourcingUnitId,
+          description: item.SourcingUnitDesc
+        })));
+
+        setSourcingTeamOptions(SourcingTeamsRes.data.map(item => ({
+          code: item.SourcingTeamId,
+          description: item.SourcingTeamName
+        })));
+
+        // Set assignments data
+        if (assignmentsRes) {
+          const assignmentData = [{
+            factoryUnitCode: assignmentsRes.data.factoryUnitCode,
+            mfuDescription: assignmentsRes.data.factoryUnitName,
+            SourcingUnitCode: assignmentsRes.data.SourcingUnitId || '',
+            SourcingUnitDescription: assignmentsRes.data.SourcingUnit?.SourcingUnitDesc || '',
+            SourcingTeamCode: assignmentsRes.data.SourcingTeamId || '',
+            SourcingTeamDescription: assignmentsRes.data.SourcingTeam?.SourcingTeamName || ''
+          }];
+          setAssignments(assignmentData);
+          setOriginalAssignments(assignmentData);
+        } else {
+          // Handle case when no specific MFU is provided (view all)
+          const allAssignments = factoryUnitsRes.data
+            .filter(fu => fu.SourcingUnitId || fu.SourcingTeamId)
+            .map(fu => ({
+              factoryUnitCode: fu.factoryUnitCode,
+              mfuDescription: fu.factoryUnitName,
+              SourcingUnitCode: fu.SourcingUnitId || '',
+              SourcingUnitDescription: fu.SourcingUnit?.SourcingUnitDesc || '',
+              SourcingTeamCode: fu.SourcingTeamId || '',
+              SourcingTeamDescription: fu.SourcingTeam?.SourcingTeamName || ''
+            }));
+          setAssignments(allAssignments);
+          setOriginalAssignments(allAssignments);
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err.message);
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [factoryUnitCode]);
+
   // Handler for Edit button
   const handleEdit = () => {
     setIsEditing(true);
   };
   
   // Handler for Save button
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save the data to a backend
-    alert('Changes saved successfully!');
+  // ... (previous imports and component declaration remain the same)
+
+  // Handler for Save button
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare update data
+      const updatePromises = assignments.map(async (assignment) => {
+        const updateData = {};
+        
+        // Only include fields that have values
+        if (assignment.SourcingUnitCode) {
+          updateData.SourcingUnitId = assignment.SourcingUnitCode;
+        }
+        if (assignment.SourcingTeamCode) {
+          updateData.SourcingTeamId = assignment.SourcingTeamCode;
+        }
+
+        // If no fields to update, skip this assignment
+        if (Object.keys(updateData).length === 0) {
+          return Promise.resolve();
+        }
+
+        return axios.put(
+          `http://localhost:3003/api/factory-units/${assignment.factoryUnitCode}`,
+          updateData
+        );
+      });
+
+      // Filter out empty promises
+      const validPromises = updatePromises.filter(p => p !== undefined);
+      
+      if (validPromises.length === 0) {
+        alert('No changes to save');
+        setIsEditing(false);
+        return;
+      }
+
+      await Promise.all(validPromises);
+      setIsEditing(false);
+      setOriginalAssignments([...assignments]);
+      alert('Changes saved successfully!');
+    } catch (err) {
+      console.error('Error saving data:', err);
+      alert(`Error saving changes: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+// ... (rest of the component remains the same)
   
   // Handler for Cancel button
   const handleCancel = () => {
     if (!isEditing) {
-      // When not in edit mode (paired with Edit button), navigate back
       navigate('/MfuSuSct');
     } else {
-      // When in edit mode (paired with Save button), just cancel editing
       setIsEditing(false);
-      // You might want to reset any unsaved changes here
+      setAssignments([...originalAssignments]);
     }
   };
-  
+
+  // Handler for field changes
+  const handleFieldChange = (index, field, value) => {
+    const updatedAssignments = [...assignments];
+    updatedAssignments[index][field] = value;
+    
+    // Auto-update descriptions when codes are selected
+    if (field === 'factoryUnitCode') {
+      const selectedMfu = mfuOptions.find(opt => opt.code === value);
+      if (selectedMfu) {
+        updatedAssignments[index].mfuDescription = selectedMfu.description;
+      }
+    } else if (field === 'SourcingUnitCode') {
+      const selectedSu = SourcingUnitOptions.find(opt => opt.code === value);
+      if (selectedSu) {
+        updatedAssignments[index].SourcingUnitDescription = selectedSu.description;
+      }
+    } else if (field === 'SourcingTeamCode') {
+      const selectedSct = SourcingTeamOptions.find(opt => opt.code === value);
+      if (selectedSct) {
+        updatedAssignments[index].SourcingTeamDescription = selectedSct.description;
+      }
+    }
+    
+    setAssignments(updatedAssignments);
+  };
+
+  if (isLoading) {
+    return <div className="business-entity-container">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="business-entity-container">Error: {error}</div>;
+  }
 
   return (
     <div className="business-entity-container">
@@ -78,16 +197,16 @@ const MfuSuSctManager = () => {
         <div className="button-row">
           <div className="left-buttons">
             {!isEditing ? (
-              <button onClick={handleEdit} className="edit-button">
+              <button onClick={handleEdit} className="edit-button" disabled={isLoading}>
                 Edit
               </button>
             ) : (
-              <button onClick={handleSave} className="save-button">
-                Save
+              <button onClick={handleSave} className="save-button" disabled={isLoading}>
+                {isLoading ? 'Saving...' : 'Save'}
               </button>
             )}
-            <button onClick={handleCancel} className="cancel-button">
-              Cancel
+            <button onClick={handleCancel} className="cancel-button" disabled={isLoading}>
+              {isEditing ? 'Cancel' : 'Back'}
             </button>
           </div>
         </div>
@@ -111,18 +230,11 @@ const MfuSuSctManager = () => {
                     {isEditing ? (
                       <select
                         className="editable-input"
-                        value={assignment.mfuCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedMfu = mfuOptions.find(opt => opt.code === e.target.value);
-                          if (selectedMfu) {
-                            updatedAssignments[index].mfuDescription = selectedMfu.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
+                        value={assignment.factoryUnitCode}
+                        onChange={(e) => handleFieldChange(index, 'factoryUnitCode', e.target.value)}
+                        disabled={!!factoryUnitCode} // Disable if editing specific MFU
                       >
+                        <option value="">Select MFU</option>
                         {mfuOptions.map((option) => (
                           <option key={option.code} value={option.code}>
                             {option.code}
@@ -130,20 +242,16 @@ const MfuSuSctManager = () => {
                         ))}
                       </select>
                     ) : (
-                      assignment.mfuCode
+                      assignment.factoryUnitCode
                     )}
                   </td>
-                  <td className="description-cell">
+                  <td>
                     {isEditing ? (
                       <input 
                         type="text" 
                         className="editable-input"
                         value={assignment.mfuDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
+                        onChange={(e) => handleFieldChange(index, 'mfuDescription', e.target.value)}
                       />
                     ) : (
                       assignment.mfuDescription
@@ -153,26 +261,18 @@ const MfuSuSctManager = () => {
                     {isEditing ? (
                       <select
                         className="editable-input"
-                        value={assignment.sourcingUnitCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].sourcingUnitCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedSu = sourcingUnitOptions.find(opt => opt.code === e.target.value);
-                          if (selectedSu) {
-                            updatedAssignments[index].sourcingUnitDescription = selectedSu.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
+                        value={assignment.SourcingUnitCode}
+                        onChange={(e) => handleFieldChange(index, 'SourcingUnitCode', e.target.value)}
                       >
-                        {sourcingUnitOptions.map((option) => (
+                        <option value="">Select Sourcing Unit</option>
+                        {SourcingUnitOptions.map((option) => (
                           <option key={option.code} value={option.code}>
                             {option.code}
                           </option>
                         ))}
                       </select>
                     ) : (
-                      assignment.sourcingUnitCode
+                      assignment.SourcingUnitCode || '-'
                     )}
                   </td>
                   <td>
@@ -180,57 +280,41 @@ const MfuSuSctManager = () => {
                       <input 
                         type="text" 
                         className="editable-input"
-                        value={assignment.sourcingUnitDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].sourcingUnitDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
+                        value={assignment.SourcingUnitDescription}
+                        onChange={(e) => handleFieldChange(index, 'SourcingUnitDescription', e.target.value)}
                       />
                     ) : (
-                      assignment.sourcingUnitDescription
+                      assignment.SourcingUnitDescription || '-'
                     )}
                   </td>
                   <td>
                     {isEditing ? (
                       <select
                         className="editable-input"
-                        value={assignment.sourcingTeamCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].sourcingTeamCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedSct = sourcingTeamOptions.find(opt => opt.code === e.target.value);
-                          if (selectedSct) {
-                            updatedAssignments[index].sourcingTeamDescription = selectedSct.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
+                        value={assignment.SourcingTeamCode}
+                        onChange={(e) => handleFieldChange(index, 'SourcingTeamCode', e.target.value)}
                       >
-                        {sourcingTeamOptions.map((option) => (
+                        <option value="">Select Sourcing Team</option>
+                        {SourcingTeamOptions.map((option) => (
                           <option key={option.code} value={option.code}>
                             {option.code}
                           </option>
                         ))}
                       </select>
                     ) : (
-                      assignment.sourcingTeamCode
+                      assignment.SourcingTeamCode || '-'
                     )}
                   </td>
-                  <td className="description-cell">
+                  <td>
                     {isEditing ? (
                       <input 
                         type="text" 
                         className="editable-input"
-                        value={assignment.sourcingTeamDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].sourcingTeamDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
+                        value={assignment.SourcingTeamDescription}
+                        onChange={(e) => handleFieldChange(index, 'SourcingTeamDescription', e.target.value)}
                       />
                     ) : (
-                      assignment.sourcingTeamDescription
+                      assignment.SourcingTeamDescription || '-'
                     )}
                   </td>
                 </tr>
@@ -243,4 +327,4 @@ const MfuSuSctManager = () => {
   );
 };
 
-export default MfuSuSctManager;
+export default EditMfuSuSctAssignmentTable;

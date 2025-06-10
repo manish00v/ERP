@@ -18,11 +18,6 @@ const createSourcingUnitSchema = Joi.object({
     .messages({
       'string.pattern.base': 'Description must be alphanumeric',
       'any.required': 'Description is required'
-    }),
-    factoryUnitCode: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'Factory Unit ID is required'
     })
 });
 

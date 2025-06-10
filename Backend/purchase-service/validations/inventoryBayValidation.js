@@ -40,7 +40,7 @@ const createInventoryBaySchema = Joi.object({
   PinCode: Joi.string()
     .pattern(pinCodeRegex)
     .required(),
-  inventoryUnitId: Joi.string()
+  InventoryUnitId: Joi.string()
     .pattern(inventoryUnitIdRegex)
     .optional()
     .allow(null, '')
@@ -69,7 +69,7 @@ const updateInventoryBaySchema = Joi.object({
     .max(30),
   PinCode: Joi.string()
     .pattern(pinCodeRegex),
-  inventoryUnitId: Joi.string()
+  InventoryUnitId: Joi.string()
     .pattern(inventoryUnitIdRegex)
     .optional()
     .allow(null, '')

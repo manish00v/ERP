@@ -6,8 +6,8 @@ const {
 
 const getAllInventoryBays = async (req, res) => {
   try {
-    const inventoryBays = await inventoryBayService.getAllInventoryBays();
-    res.json(inventoryBays);
+    const InventoryBays = await inventoryBayService.getAllInventoryBays();
+    res.json(InventoryBays);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -15,11 +15,11 @@ const getAllInventoryBays = async (req, res) => {
 
 const getInventoryBayById = async (req, res) => {
   try {
-    const inventoryBay = await inventoryBayService.getInventoryBayById(req.params.id);
-    if (!inventoryBay) {
+    const InventoryBay = await inventoryBayService.getInventoryBayById(req.params.id);
+    if (!InventoryBay) {
       return res.status(404).json({ error: 'Inventory Bay not found' });
     }
-    res.json(inventoryBay);
+    res.json(InventoryBay);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -27,8 +27,8 @@ const getInventoryBayById = async (req, res) => {
 
 const getInventoryBaysByUnitId = async (req, res) => {
   try {
-    const inventoryBays = await inventoryBayService.getInventoryBaysByUnitId(req.params.unitId);
-    res.json(inventoryBays);
+    const InventoryBays = await inventoryBayService.getInventoryBaysByUnitId(req.params.unitId);
+    res.json(InventoryBays);
   } catch (error) {
     if (error.message.includes('not exist')) {
       return res.status(404).json({ error: error.message });

@@ -16,9 +16,7 @@ const getSourcingUnitById = async (req, res) => {
   try {
     const sourcingUnit = await sourcingUnitService.getSourcingUnitById(req.params.id);
     if (!sourcingUnit) {
-      return res.status(404).json({ 
-        error: 'Sourcing Unit not found' 
-      });
+      return res.status(404).json({ error: 'Sourcing Unit not found' });
     }
     res.json(sourcingUnit);
   } catch (error) {
@@ -37,18 +35,8 @@ const createSourcingUnit = async (req, res) => {
       data: newSourcingUnit
     });
   } catch (error) {
-    if (error.message.includes('Factory Unit service error')) {
-      res.status(503).json({ 
-        error: 'Factory Unit service unavailable',
-        details: 'Could not validate Factory Unit existence' 
-      });
-    } else if (error.message.includes('Factory Unit does not exist')) {
-      res.status(400).json({ 
-        error: 'Validation failed',
-        details: error.message 
-      });
-    } else if (error.message.includes('already exists')) {
-      res.status(409).json({  // 409 Conflict for duplicate entries
+    if (error.message.includes('already exists') || error.message.includes('must be unique')) {
+      res.status(409).json({
         error: 'Duplicate entry',
         details: error.message 
       });
@@ -64,11 +52,10 @@ const createSourcingUnit = async (req, res) => {
 const updateSourcingUnit = async (req, res) => {
   try {
     if (req.body.SourcingUnitId) {
-      throw new Error('Sourcing Unit ID cannot be changed');
-    }
-
-    if (req.body.factoryUnitCode) {
-      throw new Error('Factory Unit association cannot be modified');
+      return res.status(400).json({ 
+        error: 'Invalid update',
+        details: 'Sourcing Unit ID cannot be changed' 
+      });
     }
 
     const updatedSourcingUnit = await sourcingUnitService.updateSourcingUnit(
@@ -77,9 +64,7 @@ const updateSourcingUnit = async (req, res) => {
     );
     
     if (!updatedSourcingUnit) {
-      return res.status(404).json({ 
-        error: 'Sourcing Unit not found' 
-      });
+      return res.status(404).json({ error: 'Sourcing Unit not found' });
     }
     
     res.json({
@@ -87,18 +72,10 @@ const updateSourcingUnit = async (req, res) => {
       data: updatedSourcingUnit
     });
   } catch (error) {
-    if (error.message.includes('cannot be changed') || 
-        error.message.includes('cannot be modified')) {
-      res.status(400).json({ 
-        error: 'Invalid update',
-        details: error.message 
-      });
-    } else {
-      res.status(500).json({ 
-        error: 'Failed to update sourcing unit',
-        details: error.message 
-      });
-    }
+    res.status(500).json({ 
+      error: 'Failed to update sourcing unit',
+      details: error.message 
+    });
   }
 };
 
@@ -107,9 +84,7 @@ const deleteSourcingUnit = async (req, res) => {
     const deletedSourcingUnit = await sourcingUnitService.deleteSourcingUnit(req.params.id);
     
     if (!deletedSourcingUnit) {
-      return res.status(404).json({ 
-        error: 'Sourcing Unit not found' 
-      });
+      return res.status(404).json({ error: 'Sourcing Unit not found' });
     }
     
     res.json({ 

@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const inventoryUnitIdRegex = /^[a-zA-Z0-9]{4}$/;
+const InventoryUnitIdRegex = /^[a-zA-Z0-9]{4}$/;
 const factoryUnitCodeRegex = /^[a-zA-Z0-9]{4}$/;
 const nameRegex = /^[a-zA-Z0-9 ]{1,30}$/;
 const controlMethods = ['FIFO', 'LIFO', 'FEFO', 'Specific Identification'];
@@ -12,8 +12,9 @@ const pinCodeRegex = /^[0-9]{6}$/;
 
 const createInventoryUnitSchema = Joi.object({
   InventoryUnitId: Joi.string()
-    .pattern(inventoryUnitIdRegex)
-    .required(),
+    .pattern(InventoryUnitIdRegex)
+    .required()
+    .uppercase(),
   InventoryUnitName: Joi.string()
     .pattern(nameRegex)
     .max(30)
@@ -44,12 +45,11 @@ const createInventoryUnitSchema = Joi.object({
     .pattern(factoryUnitCodeRegex)
     .optional()
     .allow(null, '')
-    .messages({
-      'string.pattern.base': 'Factory Unit Code must be 4 character alphanumeric'
-    })
+    .uppercase()
 });
 
 const updateInventoryUnitSchema = Joi.object({
+  InventoryUnitId: Joi.forbidden(), // Prevent updating ID
   InventoryUnitName: Joi.string()
     .pattern(nameRegex)
     .max(30),
@@ -73,7 +73,8 @@ const updateInventoryUnitSchema = Joi.object({
     .pattern(factoryUnitCodeRegex)
     .optional()
     .allow(null, '')
-}).min(1).message('At least one field must be provided for update');
+    .uppercase()
+}).min(1);
 
 module.exports = {
   createInventoryUnitSchema,

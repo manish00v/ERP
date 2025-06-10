@@ -1,10 +1,12 @@
 import { useState, useContext, useEffect } from "react";
 import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContext";
-// import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 
 export default function CreateManufacturingFactoryUnitForm() {
-          const { setGoBackUrl } = useContext(FormPageHeaderContext);
+    const { setGoBackUrl } = useContext(FormPageHeaderContext);
+    const navigate = useNavigate();
     
     const [formData, setFormData] = useState({
         factoryUnitCode: "",
@@ -16,17 +18,17 @@ export default function CreateManufacturingFactoryUnitForm() {
         region: "",
         country: "",
         pinCode: "",
-        language: "",
-    
+        language: "EN",
     });
 
     const [errors, setErrors] = useState({});
-   useEffect(() => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
         setGoBackUrl("/displayManufacturingFactoryUnitForm");
-      }, [setGoBackUrl]);
+    }, [setGoBackUrl]);
 
-
-      const indianCities = [
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -125,7 +127,6 @@ export default function CreateManufacturingFactoryUnitForm() {
                 }
                 break;
             case 'language':
-              
                 if (value.length > 20) {
                     return 'Language must be less than 20 characters';
                 }
@@ -137,8 +138,8 @@ export default function CreateManufacturingFactoryUnitForm() {
     };
 
     const handleCancel = () => {
-        window.location.href = '/displayManufacturingFactoryUnitForm'; 
-      };
+        navigate('/displayManufacturingFactoryUnitForm');
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -150,21 +151,31 @@ export default function CreateManufacturingFactoryUnitForm() {
             [name]: error
         }));
 
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        // If country changes, reset city
+        if (name === "country") {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                city: ""
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         
         // Validate all fields before submission
         let formValid = true;
         const newErrors = {};
         
         Object.keys(formData).forEach(key => {
-            if (key !== 'status' && key !== 'street2' && key !== 'factoryEmail') { // Skip validation for optional fields
+            if (key !== 'street2') { // Skip validation for optional fields
                 const error = validateField(key, formData[key]);
                 if (error) {
                     newErrors[key] = error;
@@ -175,38 +186,42 @@ export default function CreateManufacturingFactoryUnitForm() {
         
         setErrors(newErrors);
         
-        if (formValid) {
-            // In a real app, you would send this data to your backend
-            console.log("Form data valid, ready to submit:", formData);
-            alert("Manufacturing Factory Unit created successfully (simulated)!");
-            // Reset form after successful submission
-            setFormData({
-                factoryUnitCode: "",
-                factoryUnitName: "",
-                street1: "",
-                street2: "",
-                city: "",
-                state: "",
-                region: "",
-                country: "",
-                pinCode: "",
-                language: "",
-               
-            });
-        } else {
+        if (!formValid) {
             alert("Please fix the errors in the form before submitting.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                "http://localhost:3003/api/factory-units",
+                formData
+            );
+
+            if (response.status === 201) {
+                alert("Manufacturing Factory Unit created successfully!");
+                navigate("/displayManufacturingFactoryUnitForm");
+            }
+        } catch (error) {
+            console.error("Error creating factory unit:", error);
+            
+            if (error.response) {
+                if (error.response.status === 409) {
+                    alert("Error: Factory Unit Code already exists");
+                } else {
+                    alert(`Error: ${error.response.data.message || "Failed to create factory unit"}`);
+                }
+            } else {
+                alert("Network error. Please try again.");
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-
         <>
-    
-
-
-        <div className="container">
-       
-
+            <div className="container">
                 <form onSubmit={handleSubmit}>
                     {/* Factory Unit Details */}
                     <div className="header-box">
@@ -215,34 +230,38 @@ export default function CreateManufacturingFactoryUnitForm() {
                             <div className="data">
                                 <label htmlFor="factoryUnitCode">Factory Unit Code*</label>
                                 <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Factory UnitfCode must be exactly 4 digits. <br />
-                    2- Factory Unit Code must be unique. <br />
-                    3- Factory Unit Code must not contain any special characters.  <br />
-                    4- Factory Unit Code must not contain any spaces. <br /> 
-                    5- Factory Unit Code once created then it can be not delete. <br />
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="factoryUnitCode"
-                                    name="factoryUnitCode"
-                                    value={formData.factoryUnitCode}
-                                    onChange={handleChange}
-                                    maxLength={4}
-                                    required
-                                />
-                                {errors.factoryUnitCode && <span className="error">{errors.factoryUnitCode}</span>}
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        1- Factory Unit Code must be exactly 4 digits. <br />
+                                        2- Factory Unit Code must be unique. <br />
+                                        3- Factory Unit Code must not contain any special characters. <br />
+                                        4- Factory Unit Code must not contain any spaces. <br /> 
+                                        5- Factory Unit Code once created then it cannot be deleted. <br />
+                                    </span>
+                                </span>
+
+                                <div>
+                                    <input
+                                        type="text"
+                                        id="factoryUnitCode"
+                                        name="factoryUnitCode"
+                                        value={formData.factoryUnitCode}
+                                        onChange={handleChange}
+                                        maxLength={4}
+                                        required
+                                    />
+                                    {errors.factoryUnitCode && <span className="error">{errors.factoryUnitCode}</span>}
+                                </div>
+                           
                             </div>
                             <div className="data">
                                 <label htmlFor="factoryUnitName">Factory Unit Name*</label>
                                 <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                  Factory Unit Name must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        Factory Unit Name must be alphanumeric and up to 30 characters.
+                                    </span>
+                                </span>
                                 <input
                                     type="text"
                                     id="factoryUnitName"
@@ -301,7 +320,7 @@ export default function CreateManufacturingFactoryUnitForm() {
                                 {errors.state && <span className="error">{errors.state}</span>}
                             </div>
 
-              <div className="data">
+                               <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -559,30 +578,30 @@ export default function CreateManufacturingFactoryUnitForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
+                            <div className="data">
+                                <label htmlFor="city">City*</label>
+                                <select
+                                    id="city"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Select a city</option>
+                                    {formData.country === "India"
+                                        ? indianCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))
+                                        : otherCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.city && <span className="error">{errors.city}</span>}
+                            </div>
                             <div className="data">
                                 <label htmlFor="pinCode">Pin Code*</label>
                                 <input
@@ -598,30 +617,34 @@ export default function CreateManufacturingFactoryUnitForm() {
                             </div>
                             <div className="data">
                                 <label htmlFor="language">Language</label>
-                                <input
-                                    type="text"
+                                <select
                                     id="language"
                                     name="language"
                                     value={formData.language}
                                     onChange={handleChange}
-                                    maxLength={20}
-                                />
+                                >
+                                    <option value="EN">English</option>
+                                    <option value="FR">French</option>
+                                    <option value="DE">German</option>
+                                    <option value="ES">Spanish</option>
+                                    <option value="HI">Hindi</option>
+                                </select>
                                 {errors.language && <span className="error">{errors.language}</span>}
                             </div>
                         </div>
                     </div>
 
-                   
                     {/* Submit Button */}
                     <div className="submit-button">
-            <button type="submit">Save</button>
-          </div>
+                        <button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Creating..." : "Save"}
+                        </button>
+                    </div>
                 </form>
                 <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
+                    Cancel
+                </button>
             </div>
-            {/* <FormPageHeader /> */}
         </>
     );
 }

@@ -1,10 +1,13 @@
-import { useState} from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 
 export default function CreateDeliveryLocationForm() {
+    const navigate = useNavigate();
     
     const [formData, setFormData] = useState({
-        deliveryLocationId: "",
+        deliveryLocationCode: "",
         deliveryLocationName: "",
         street1: "",
         street2: "",
@@ -16,9 +19,9 @@ export default function CreateDeliveryLocationForm() {
     });
 
     const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-      const indianCities = [
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -71,14 +74,14 @@ export default function CreateDeliveryLocationForm() {
 
     const validateField = (name, value) => {
         switch (name) {
-            case 'deliveryLocationId':
+            case 'deliveryLocationCode':
                 if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
-                    return 'Delivery Location ID must be exactly 4 alphanumeric characters';
+                    return 'Delivery Location Code must be exactly 4 alphanumeric characters';
                 }
                 break;
-            case 'deliveryLocationDescription':
+            case 'deliveryLocationName':
                 if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
-                    return 'Delivery Location Description must be alphanumeric and up to 30 characters';
+                    return 'Delivery Location Name must be alphanumeric and up to 30 characters';
                 }
                 break;
             case 'street1':
@@ -122,10 +125,9 @@ export default function CreateDeliveryLocationForm() {
         return '';
     };
 
-    
     const handleCancel = () => {
-        window.location.href = '/displayDeliveryLocationForm'; 
-      };
+        navigate('/displayDeliveryLocationForm');
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -137,156 +139,169 @@ export default function CreateDeliveryLocationForm() {
             [name]: error
         }));
 
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        // If country changes, reset city
+        if (name === "country") {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                city: ""
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         
         // Validate all fields before submission
         let formValid = true;
         const newErrors = {};
         
         Object.keys(formData).forEach(key => {
-            if (key !== 'status') { // Skip validation for status dropdown
-                const error = validateField(key, formData[key]);
-                if (error) {
-                    newErrors[key] = error;
-                    formValid = false;
-                }
+            const error = validateField(key, formData[key]);
+            if (error) {
+                newErrors[key] = error;
+                formValid = false;
             }
         });
         
         setErrors(newErrors);
         
-        if (formValid) {
-            // In a real app, you would send this data to your backend
-            console.log("Form data valid, ready to submit:", formData);
-            alert("Delivery Location created successfully (simulated)!");
-            // Reset form after successful submission
-            setFormData({
-                deliveryLocationId: "",
-                deliveryLocationName: "",
-                street1: "",
-                street2: "",
-                city: "",
-                state: "",
-                region: "",
-                country: "",
-                pinCode: "",
-                status: "Active"
-            });
-        } else {
+        if (!formValid) {
             alert("Please fix the errors in the form before submitting.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                "http://localhost:3003/api/delivery-locations",
+                formData
+            );
+
+            if (response.status === 201) {
+                alert("Delivery Location created successfully!");
+                navigate("/displayDeliveryLocationForm");
+            }
+        } catch (error) {
+            console.error("Error creating delivery location:", error);
+            
+            if (error.response) {
+                if (error.response.status === 409) {
+                    alert("Error: Delivery Location Code already exists");
+                } else {
+                    alert(`Error: ${error.response.data.message || "Failed to create delivery location"}`);
+                }
+            } else {
+                alert("Network error. Please try again.");
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-
-        <>
-        
-      
         <div className="container">
-      
-
-                <form onSubmit={handleSubmit}>
-                    {/* Delivery Location Details */}
-                    <div className="header-box">
-                        <h2>Delivery Location Information</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="deliveryLocationId">Delivery Location ID*</label>
-                                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Delivery Location Code must be exactly 4 digits. <br />
-                    2- Delivery Location Code must be unique. <br />
-                    3- Delivery Location Code must not contain any special characters.  <br />
-                    4- Delivery Location Code must not contain any spaces. <br /> 
-                    5- Delivery Location Code once created then it can be not delete. <br />
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="deliveryLocationId"
-                                    name="deliveryLocationId"
-                                    value={formData.deliveryLocationId}
-                                    onChange={handleChange}
-                                    maxLength={4}
-                                    required
-                                />
-                                {errors.deliveryLocationId && <span className="error">{errors.deliveryLocationId}</span>}
-                            </div>
-                            <div className="data">
-                                <label htmlFor="deliveryLocationDescription">Delivery Location Description*</label>
-                                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                  Delivery Location Description must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="deliveryLocationDescription"
-                                    name="deliveryLocationDescription"
-                                    value={formData.deliveryLocationDescription}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.deliveryLocationDescription && <span className="error">{errors.deliveryLocationDescription}</span>}
-                            </div>
+            <form onSubmit={handleSubmit}>
+                {/* Delivery Location Details */}
+                <div className="header-box">
+                    <h2>Delivery Location Information</h2>
+                    <div className="data-container">
+                        <div className="data">
+                            <label htmlFor="deliveryLocationCode">Delivery Location Code*</label>
+                            <span className="info-icon-tooltip">
+                                <i className="fas fa-info-circle" />
+                                <span className="tooltip-text">
+                                    1- Delivery Location Code must be exactly 4 digits. <br />
+                                    2- Delivery Location Code must be unique. <br />
+                                    3- Delivery Location Code must not contain any special characters. <br />
+                                    4- Delivery Location Code must not contain any spaces. <br /> 
+                                    5- Delivery Location Code once created then it cannot be deleted. <br />
+                                </span>
+                            </span>
+                            <input
+                                type="text"
+                                id="deliveryLocationCode"
+                                name="deliveryLocationCode"
+                                value={formData.deliveryLocationCode}
+                                onChange={handleChange}
+                                maxLength={4}
+                                required
+                            />
+                            {errors.deliveryLocationCode && <span className="error">{errors.deliveryLocationCode}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="deliveryLocationName">Delivery Location Name*</label>
+                            <span className="info-icon-tooltip">
+                                <i className="fas fa-info-circle" />
+                                <span className="tooltip-text">
+                                    Delivery Location Name must be alphanumeric and up to 30 characters.
+                                </span>
+                            </span>
+                            <input
+                                type="text"
+                                id="deliveryLocationName"
+                                name="deliveryLocationName"
+                                value={formData.deliveryLocationName}
+                                onChange={handleChange}
+                                maxLength={30}
+                                required
+                            />
+                            {errors.deliveryLocationName && <span className="error">{errors.deliveryLocationName}</span>}
                         </div>
                     </div>
+                </div>
 
-                    {/* Address Details */}
-                    <div className="item-box">
-                        <h2>Address Details</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="street1">Street 1*</label>
-                                <input
-                                    type="text"
-                                    id="street1"
-                                    name="street1"
-                                    value={formData.street1}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                    required
-                                />
-                                {errors.street1 && <span className="error">{errors.street1}</span>}
-                            </div>
-                            <div className="data">
-                                <label htmlFor="street2">Street 2</label>
-                                <input
-                                    type="text"
-                                    id="street2"
-                                    name="street2"
-                                    value={formData.street2}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                />
-                                {errors.street2 && <span className="error">{errors.street2}</span>}
-                            </div>
-                            
-                            <div className="data">
-                                <label htmlFor="state">State*</label>
-                                <input
-                                    type="text"
-                                    id="state"
-                                    name="state"
-                                    value={formData.state}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.state && <span className="error">{errors.state}</span>}
-                            </div>
+                {/* Address Details */}
+                <div className="item-box">
+                    <h2>Address Details</h2>
+                    <div className="data-container">
+                        <div className="data">
+                            <label htmlFor="street1">Street 1*</label>
+                            <input
+                                type="text"
+                                id="street1"
+                                name="street1"
+                                value={formData.street1}
+                                onChange={handleChange}
+                                maxLength={50}
+                                required
+                            />
+                            {errors.street1 && <span className="error">{errors.street1}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="street2">Street 2</label>
+                            <input
+                                type="text"
+                                id="street2"
+                                name="street2"
+                                value={formData.street2}
+                                onChange={handleChange}
+                                maxLength={50}
+                            />
+                            {errors.street2 && <span className="error">{errors.street2}</span>}
+                        </div>
+                        
+                        <div className="data">
+                            <label htmlFor="state">State*</label>
+                            <input
+                                type="text"
+                                id="state"
+                                name="state"
+                                value={formData.state}
+                                onChange={handleChange}
+                                maxLength={30}
+                                required
+                            />
+                            {errors.state && <span className="error">{errors.state}</span>}
+                        </div>
 
-                            <div className="data">
+                           <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -544,58 +559,57 @@ export default function CreateDeliveryLocationForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
-
-                            
-                            <div className="data">
-                                <label htmlFor="pinCode">Pin Code*</label>
-                                <input
-                                    type="text"
-                                    id="pinCode"
-                                    name="pinCode"
-                                    value={formData.pinCode}
-                                    onChange={handleChange}
-                                    maxLength={6}
-                                    required
-                                />
-                                {errors.pinCode && <span className="error">{errors.pinCode}</span>}
-                            </div>
+                        <div className="data">
+                            <label htmlFor="city">City*</label>
+                            <select
+                                id="city"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">Select a city</option>
+                                {formData.country === "India"
+                                    ? indianCities.map((city) => (
+                                        <option key={city} value={city}>
+                                            {city}
+                                        </option>
+                                    ))
+                                    : otherCities.map((city) => (
+                                        <option key={city} value={city}>
+                                            {city}
+                                        </option>
+                                    ))}
+                            </select>
+                            {errors.city && <span className="error">{errors.city}</span>}
+                        </div>
+                        
+                        <div className="data">
+                            <label htmlFor="pinCode">Pin Code*</label>
+                            <input
+                                type="text"
+                                id="pinCode"
+                                name="pinCode"
+                                value={formData.pinCode}
+                                onChange={handleChange}
+                                maxLength={6}
+                                required
+                            />
+                            {errors.pinCode && <span className="error">{errors.pinCode}</span>}
                         </div>
                     </div>
+                </div>
 
-                    {/* Submit Button */}
-                    <div className="submit-button">
-            <button type="submit">Save</button>
-          </div>
-                </form>
-                <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
-            </div>
-           
-        </>
+                {/* Submit Button */}
+                <div className="submit-button">
+                    <button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Creating..." : "Save"}
+                    </button>
+                </div>
+            </form>
+            <button className="cancel-button-header" onClick={handleCancel}>
+                Cancel
+            </button>
+        </div>
     );
 }

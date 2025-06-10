@@ -8,17 +8,10 @@ const {
 const validate = require('../middlewares/validate');
 
 router.get('/', inventoryUnitController.getAllInventoryUnits);
-router.get('/:id', inventoryUnitController.getInventoryUnitById);
-router.post(
-  '/',
-  validate(createInventoryUnitSchema),
-  inventoryUnitController.createInventoryUnit
-);
-router.put(
-  '/:id',
-  validate(updateInventoryUnitSchema),
-  inventoryUnitController.updateInventoryUnit
-);
-router.delete('/:id', inventoryUnitController.deleteInventoryUnit);
+router.get('/:InventoryUnitId', inventoryUnitController.getInventoryUnitByCode);
+router.post('/', validate(createInventoryUnitSchema), inventoryUnitController.createInventoryUnit);
+router.put('/:InventoryUnitId', validate(updateInventoryUnitSchema), inventoryUnitController.updateInventoryUnitByCode);
+router.delete('/:InventoryUnitId', inventoryUnitController.deleteInventoryUnitByCode);
+router.get('/factory/:factoryUnitCode', inventoryUnitController.getInventoryUnitsByFactoryCode);
 
 module.exports = router;

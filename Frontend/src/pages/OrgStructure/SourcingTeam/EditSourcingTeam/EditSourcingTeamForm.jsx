@@ -3,77 +3,101 @@ import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContex
 import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 import { FaEdit, FaSave } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:5003/api";
+const SOURCING_TEAMS_URL = `${API_BASE_URL}/sourcing-teams`;
 
 export default function EditSourcingTeamForm() {
-        const { setGoBackUrl } = useContext(FormPageHeaderContext);
-    
+  const { setGoBackUrl } = useContext(FormPageHeaderContext);
+  const { SourcingTeamId } = useParams();
+  
   const [formData, setFormData] = useState({
-    teamId: "",
-    teamName: "",
-    teamType: "",
-    countryCode: "",
-    pinCode: "",
-    phoneNumber: "",
-    landlineNumber: "",
-    email: ""
+    SourcingTeamId: "",
+    SourcingTeamName: "",
+    TeamType: "",
+    CountryCode: "",
+    PinCode: "",
+    PhoneNumber: "",
+    LandlineNumber: "",
+    Email: ""
   });
-
-  useEffect(() => {
-    setGoBackUrl("/displaySourcingTeam");
-    // Simulate loading existing data
-    const mockData = {
-      teamId: "ABC1",
-      teamName: "Sample Business",
-      teamType: "individuval",
-      countryCode: "+91",
-      pinCode: "400001",
-      phoneNumber: "",
-      landlineNumber: "",
-      email: ""
-    };
-    setFormData(mockData);
-    setOriginalData(mockData);
-  }, [setGoBackUrl]);
 
   const [errors, setErrors] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const teamTypes = ["Individual", "Group"];
 
+  useEffect(() => {
+    setGoBackUrl("/displaySourcingTeam");
+    fetchSourcingTeamData();
+  }, [setGoBackUrl, SourcingTeamId]);
+
+  const fetchSourcingTeamData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${SOURCING_TEAMS_URL}/${SourcingTeamId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch sourcing team data');
+      }
+
+      const data = await response.json();
+      
+      setFormData({
+        SourcingTeamId: data.SourcingTeamId,
+        SourcingTeamName: data.SourcingTeamName,
+        TeamType: data.TeamType,
+        CountryCode: data.CountryCode,
+        PinCode: data.PinCode,
+        PhoneNumber: data.PhoneNumber,
+        LandlineNumber: data.LandlineNumber,
+        Email: data.Email
+      });
+      setOriginalData(data);
+    } catch (error) {
+      console.error("Error fetching sourcing team:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const validateField = (name, value) => {
     switch (name) {
-      case "teamId":
+      case "SourcingTeamId":
         if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
           return "Team ID must be exactly 4 alphanumeric characters";
         }
         break;
-      case "teamName":
+      case "SourcingTeamName":
         if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
           return "Team Name must be alphanumeric and up to 30 characters";
         }
         break;
-      case "teamType":
+      case "TeamType":
         if (!value) return "Team type is required";
         break;
-      case "countryCode":
+      case "CountryCode":
         if (value.length > 5 || !/^[0-9+\-() ]+$/.test(value)) {
           return "Country code must be numeric with special characters (max 5 chars)";
         }
         break;
-      case "pinCode":
+      case "PinCode":
         if (!/^\d{6}$/.test(value)) return "Pin code must be exactly 6 digits";
         break;
-      case "phoneNumber":
+      case "PhoneNumber":
         if (!/^\d{10,12}$/.test(value)) return "Phone number must be 10-12 digits";
         break;
-      case "landlineNumber":
+      case "LandlineNumber":
         if (value && !/^\d{10,12}$/.test(value)) {
           return "Landline number must be 10-12 digits";
         }
         break;
-      case "email":
+      case "Email":
         if (value.length > 20 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           return "Email must be valid and up to 20 characters";
         }
@@ -89,52 +113,77 @@ export default function EditSourcingTeamForm() {
     
     const { name, value } = e.target;
 
-    // Validate the field
     const error = validateField(name, value);
     setErrors((prev) => ({
       ...prev,
       [name]: error,
     }));
 
-    // If country changes, reset city
-    if (name === "country") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-        city: "" // Reset city when country changes
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     let formValid = true;
     const newErrors = {};
 
     Object.keys(formData).forEach((key) => {
-      const error = validateField(key, formData[key]);
-      if (error) {
-        newErrors[key] = error;
-        formValid = false;
+      if (key !== "SourcingTeamId") { // Skip validation for SourcingTeamId
+        const error = validateField(key, formData[key]);
+        if (error) {
+          newErrors[key] = error;
+          formValid = false;
+        }
       }
     });
 
     setErrors(newErrors);
 
-    if (formValid) {
-      console.log("Form data valid, ready to submit:", formData);
-      alert("Sourcing Team updated successfully!");
-      setOriginalData(formData);
-      setIsEditing(false);
-    } else {
+    if (!formValid) {
+      setIsSubmitting(false);
       alert("Please fix the errors in the form before submitting.");
+      return;
+    }
+
+    try {
+      // Create payload without SourcingTeamId
+      const payload = {
+        SourcingTeamName: formData.SourcingTeamName,
+        TeamType: formData.TeamType,
+        CountryCode: formData.CountryCode,
+        PinCode: formData.PinCode,
+        PhoneNumber: formData.PhoneNumber,
+        LandlineNumber: formData.LandlineNumber,
+        Email: formData.Email
+      };
+
+      const response = await fetch(`${SOURCING_TEAMS_URL}/${SourcingTeamId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update sourcing team');
+      }
+
+      const updatedData = await response.json();
+      alert("Sourcing Team updated successfully!");
+      setOriginalData(updatedData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating sourcing team:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,17 +191,22 @@ export default function EditSourcingTeamForm() {
     setIsEditing(true);
   };
 
+  if (isLoading) {
+    return <div className="container">Loading...</div>;
+  }
+
   return (
-<>
-<div className="container">
+    <>
+      <div className="container">
         <div className="edit-controls">
           {isEditing ? (
             <button 
               type="submit" 
               form="sourcingTeamForm" 
               className="save-button-edit-page"
+              disabled={isSubmitting}
             >
-              <FaSave /> Save
+              <FaSave /> {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           ) : (
             <button 
@@ -165,159 +219,156 @@ export default function EditSourcingTeamForm() {
           )}
         </div>
 
-   
-      <form id="sourcingTeamForm" onSubmit={handleSubmit}>
-          {/* Sourcing Team Details */}
+        <form id="sourcingTeamForm" onSubmit={handleSubmit}>
           <div className="header-box">
             <h2>Sourcing Team Details</h2>
             <div className="data-container">
               <div className="data">
-                <label htmlFor="teamId">Sourcing Team Code*</label>
+                <label htmlFor="SourcingTeamId">Sourcing Team Code</label>
                 <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
-                    1- Sourcing Team Code must be exactly 4 digits. <br />
-                    2- Sourcing Team Code must be unique. <br />
-                    3- Sourcing TeamCode must not contain any special characters.  <br />
-                    4- Sourcing Team Code must not contain any spaces. <br /> 
-                    5- Sourcing Team Code once created then it can be not delete. <br />
+                    Sourcing Team Code cannot be modified after creation
                   </span>
                 </span>
                 <input
                   type="text"
-                  id="teamId"
-                  name="teamId"
-                  value={formData.teamId}
-                  onChange={handleChange}
-                  maxLength={4}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
+                  id="SourcingTeamId"
+                  name="SourcingTeamId"
+                  value={formData.SourcingTeamId}
+                  readOnly
+                  className="read-only"
                 />
-                {errors.teamId && (
-                  <span className="error">{errors.teamId}</span>
-                )}
               </div>
               <div className="data">
-                <label htmlFor="teamDescription">Sourcing Team Description*</label>
-                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    Sourcing Team Name must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
+                <label htmlFor="SourcingTeamName">Sourcing Team Description*</label>
                 <input
                   type="text"
-                  id="teamDescription"
-                  name="teamDescription"
-                  value={formData.teamDescription}
+                  id="SourcingTeamName"
+                  name="SourcingTeamName"
+                  value={formData.SourcingTeamName}
                   onChange={handleChange}
                   maxLength={30}
                   required
                   readOnly={!isEditing}
                   className={!isEditing ? "read-only" : ""}
                 />
-                {errors.teamDescription && (
-                  <span className="error">{errors.teamDescription}</span>
+                {errors.SourcingTeamName && (
+                  <span className="error">{errors.SourcingTeamName}</span>
                 )}
               </div>
+            </div>
           </div>
-        </div>
           
-        <div className="item-box">
-          <h2>Contact Details</h2>
-          <div className="data-container">
-          <div className="data">
-              <label htmlFor="teamType">Team Type*</label>
-              <select
-                id="teamType"
-                name="teamType"
-                value={formData.teamType}
-                onChange={handleChange}
-                required
-                placeholder="Individual"
-                disabled={!isEditing}
-                className={!isEditing ? "read-only" : ""}
-              >
-                <option value="">Select type</option>
-                {teamTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-                
-              </select>
-              
-              {errors.teamType && ( <span className="error">{errors.teamType}</span>)}
-            </div>
+          <div className="item-box">
+            <h2>Contact Details</h2>
+            <div className="data-container">
+              <div className="data">
+                <label htmlFor="TeamType">Team Type*</label>
+                <select
+                  id="TeamType"
+                  name="TeamType"
+                  value={formData.TeamType}
+                  onChange={handleChange}
+                  required
+                  disabled={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                >
+                  <option value="">Select type</option>
+                  {teamTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+                {errors.TeamType && <span className="error">{errors.TeamType}</span>}
+              </div>
 
-            <div className="data">
-              <label>Country Code*</label>
-              <input
-                type="text"
-                name="countryCode"
-                value={formData.countryCode}
-                onChange={handleChange}
-                maxLength={12}
-                required
-                placeholder="+91"
-                readOnly={!isEditing}
-                className={!isEditing ? "read-only" : ""}
-              />
-              {errors.countryCode && <span className="error">{errors.countryCode}</span>}
-            </div>
-         
-            <div className="data">
-              <label>Phone Number*</label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                maxLength={12}
-                required
-                placeholder="10-12 digits"
-                readOnly={!isEditing}
-                className={!isEditing ? "read-only" : ""}
-              />
-              {errors.phoneNumber && <span className="error">{errors.phoneNumber}</span>}
-            </div>
+              <div className="data">
+                <label htmlFor="PinCode">Pin Code*</label>
+                <input
+                  type="text"
+                  id="PinCode"
+                  name="PinCode"
+                  value={formData.PinCode}
+                  onChange={handleChange}
+                  maxLength={6}
+                  required
+                  readOnly={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                />
+                {errors.PinCode && <span className="error">{errors.PinCode}</span>}
+              </div>
 
-            <div className="data">
-              <label>Landline Number</label>
-              <input
-                type="text"
-                name="landlineNumber"
-                value={formData.landlineNumber}
-                onChange={handleChange}
-                maxLength={12}
-                placeholder="10-12 digits"
-                readOnly={!isEditing}
-                className={!isEditing ? "read-only" : ""}
-              />
-              {errors.landlineNumber && <span className="error">{errors.landlineNumber}</span>}
-            </div>
+              <div className="data">
+                <label htmlFor="CountryCode">Country Code*</label>
+                <input
+                  type="text"
+                  id="CountryCode"
+                  name="CountryCode"
+                  value={formData.CountryCode}
+                  onChange={handleChange}
+                  maxLength={5}
+                  required
+                  placeholder="+91"
+                  readOnly={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                />
+                {errors.CountryCode && <span className="error">{errors.CountryCode}</span>}
+              </div>
+           
+              <div className="data">
+                <label htmlFor="PhoneNumber">Phone Number*</label>
+                <input
+                  type="text"
+                  id="PhoneNumber"
+                  name="PhoneNumber"
+                  value={formData.PhoneNumber}
+                  onChange={handleChange}
+                  maxLength={12}
+                  required
+                  placeholder="10-12 digits"
+                  readOnly={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                />
+                {errors.PhoneNumber && <span className="error">{errors.PhoneNumber}</span>}
+              </div>
 
-            <div className="data">
-              <label>E-mail*</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                maxLength={20}
-                required
-                placeholder="E-mail"
-                readOnly={!isEditing}
-                className={!isEditing ? "read-only" : ""}
-              />
-              {errors.email && <span className="error">{errors.email}</span>}
+              <div className="data">
+                <label htmlFor="LandlineNumber">Landline Number</label>
+                <input
+                  type="text"
+                  id="LandlineNumber"
+                  name="LandlineNumber"
+                  value={formData.LandlineNumber}
+                  onChange={handleChange}
+                  maxLength={12}
+                  placeholder="10-12 digits"
+                  readOnly={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                />
+                {errors.LandlineNumber && <span className="error">{errors.LandlineNumber}</span>}
+              </div>
+
+              <div className="data">
+                <label htmlFor="Email">E-mail*</label>
+                <input
+                  type="email"
+                  id="Email"
+                  name="Email"
+                  value={formData.Email}
+                  onChange={handleChange}
+                  maxLength={20}
+                  required
+                  placeholder="E-mail"
+                  readOnly={!isEditing}
+                  className={!isEditing ? "read-only" : ""}
+                />
+                {errors.Email && <span className="error">{errors.Email}</span>}
+              </div>
             </div>
           </div>
-        </div>
-
-        
-      </form>
-    </div>
-    <FormPageHeader 
+        </form>
+      </div>
+      <FormPageHeader 
         onCancel={() => {
           if (isEditing) {
             setFormData(originalData);

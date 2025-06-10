@@ -28,15 +28,15 @@ class SalesTeamService {
     return prisma.salesTeam.findMany();
   }
 
-  static async getSalesTeamById(id) {
+  static async getSalesTeamById(salesTeamCode) {
     return prisma.salesTeam.findUnique({
-      where: { id: parseInt(id) }
+      where: { salesTeamCode: (salesTeamCode) }
     });
   }
 
-  static async updateSalesTeam(id, data) {
+  static async updateSalesTeam(salesTeamCode, data) {
     const existingTeam = await prisma.salesTeam.findUnique({
-      where: { id: parseInt(id) }
+      where: { salesTeamCode: (salesTeamCode) }
     });
 
     if (!existingTeam) {
@@ -53,14 +53,14 @@ class SalesTeamService {
     }
 
     return prisma.salesTeam.update({
-      where: { id: parseInt(id) },
+      where: { salesTeamCode: (salesTeamCode) },
       data
     });
   }
 
-  static async deleteSalesTeam(id) {
+  static async deleteSalesTeam(salesTeamCode) {
     return prisma.salesTeam.delete({
-      where: { id: parseInt(id) }
+      where: { salesTeamCode: (salesTeamCode) }
     });
   }
 }

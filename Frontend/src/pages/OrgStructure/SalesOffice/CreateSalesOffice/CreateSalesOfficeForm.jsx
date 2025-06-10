@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 
 export default function CreateSalesOfficeForm() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        officeCode: "",
-        officeDescription: "",
+        salesOfficeCode: "",
+        salesOfficeDesc: "",
         street1: "",
         street2: "",
         city: "",
@@ -15,7 +18,9 @@ export default function CreateSalesOfficeForm() {
     });
 
     const [errors, setErrors] = useState({});
-    const indianCities = [
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -65,36 +70,47 @@ export default function CreateSalesOfficeForm() {
          "Vatican City", "Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Hanoi", "Ho Chi Minh City", "Da Nang", "Hai Phong", "Sana'a", "Aden", "Taiz", "Al Hudaydah", "Lusaka", "Ndola", "Kitwe", "Livingstone", "Harare", "Bulawayo", "Chitungwiza", "Mutare"
     
       ];
-    
 
     const validateField = (name, value) => {
         switch (name) {
-            case 'officeCode':
+            case 'salesOfficeCode':
                 if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
                     return 'Sales Office Code must be exactly 4 alphanumeric characters';
                 }
                 break;
-            case 'officeDescription':
+            case 'salesOfficeDesc':
                 if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
                     return 'Description must be alphanumeric and up to 30 characters';
                 }
                 break;
             case 'street1':
+                if (value.length > 50) {
+                    return 'Street 1 must be less than 50 characters';
+                }
+                break;
             case 'street2':
                 if (value.length > 50) {
-                    return 'Street address must be up to 50 characters';
+                    return 'Street 2 must be less than 50 characters';
                 }
                 break;
             case 'city':
-            case 'state':
-            case 'country':
                 if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
-                    return 'Must contain only letters and up to 30 characters';
+                    return 'City must be alphabetical and less than 30 characters';
+                }
+                break;
+            case 'state':
+                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+                    return 'State must be alphabetical and less than 30 characters';
                 }
                 break;
             case 'region':
                 if (value.length > 50) {
-                    return 'Region must be up to 50 characters';
+                    return 'Region must be less than 50 characters';
+                }
+                break;
+            case 'country':
+                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+                    return 'Country must be alphabetical and less than 30 characters';
                 }
                 break;
             case 'pinCode':
@@ -109,8 +125,8 @@ export default function CreateSalesOfficeForm() {
     };
 
     const handleCancel = () => {
-        window.location.href = '/displayBusinessUnit'; 
-      };
+        navigate('/displaySalesOffice');
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -122,14 +138,24 @@ export default function CreateSalesOfficeForm() {
             [name]: error
         }));
 
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        // If country changes, reset city
+        if (name === "country") {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                city: ""
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         
         // Validate all fields before submission
         let formValid = true;
@@ -145,131 +171,134 @@ export default function CreateSalesOfficeForm() {
         
         setErrors(newErrors);
         
-        if (formValid) {
-            // In a real app, you would send this data to your backend
-            console.log("Form data valid, ready to submit:", formData);
-            alert("Sales Office created successfully (simulated)!");
-            // Reset form after successful submission
-            setFormData({
-                officeCode: "",
-                officeDescription: "",
-                street1: "",
-                street2: "",
-                city: "",
-                state: "",
-                region: "",
-                country: "",
-                pinCode: ""
-            });
-        } else {
+        if (!formValid) {
             alert("Please fix the errors in the form before submitting.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                "http://localhost:3003/api/sales-offices",
+                formData
+            );
+
+            if (response.status === 201) {
+                alert("Sales Office created successfully!");
+                navigate("/displaySalesOffice");
+            }
+        } catch (error) {
+            console.error("Error creating sales office:", error);
+            
+            if (error.response) {
+                if (error.response.status === 409) {
+                    alert("Error: Sales Office Code already exists");
+                } else {
+                    alert(`Error: ${error.response.data.message || "Failed to create sales office"}`);
+                }
+            } else {
+                alert("Network error. Please try again.");
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
         <div className="container">
-        
-
-                <form onSubmit={handleSubmit}>
-                    {/* Sales Office Details */}
-                    <div className="header-box">
-                        <h2>Office Information</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="officeCode">Sales Office Code*</label>
-                                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Sales office Code must be exactly 4 digits. <br />
-                    2- Sales office Code must be unique. <br />
-                    3- Sales office Code must not contain any special characters.  <br />
-                    4- Sales office Code must not contain any spaces. <br /> 
-                    5- Sales office Code once created then it can be not delete. <br />
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="officeCode"
-                                    name="officeCode"
-                                    value={formData.officeCode}
-                                    onChange={handleChange}
-                                    maxLength={4}
-                                    required
-                                />
-                                {errors.officeCode && <span className="error">{errors.officeCode}</span>}
-                            </div>
-                            <div className="data">
-                                <label htmlFor="officeDescription">Description*</label>
-                                <span className="info-icon-tooltip">
+            <form onSubmit={handleSubmit}>
+                {/* Sales Office Details */}
+                <div className="header-box">
+                    <h2>Office Information</h2>
+                    <div className="data-container">
+                        <div className="data">
+                            <label htmlFor="salesOfficeCode">Sales Office Code*</label>
+                            <span className="info-icon-tooltip">
                                 <i className="fas fa-info-circle" />
                                 <span className="tooltip-text">
-                    Sales Office Description must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="officeDescription"
-                                    name="officeDescription"
-                                    value={formData.officeDescription}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.officeDescription && <span className="error">{errors.officeDescription}</span>}
-                            </div>
+                                    1- Sales office Code must be exactly 4 digits. <br />
+                                    2- Sales office Code must be unique. <br />
+                                    3- Sales office Code must not contain any special characters. <br />
+                                    4- Sales office Code must not contain any spaces. <br /> 
+                                    5- Sales office Code once created then it cannot be deleted. <br />
+                                </span>
+                            </span>
+                            <input
+                                type="text"
+                                id="salesOfficeCode"
+                                name="salesOfficeCode"
+                                value={formData.salesOfficeCode}
+                                onChange={handleChange}
+                                maxLength={4}
+                                required
+                            />
+                            {errors.salesOfficeCode && <span className="error">{errors.salesOfficeCode}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="salesOfficeDesc">Description*</label>
+                            <span className="info-icon-tooltip">
+                                <i className="fas fa-info-circle" />
+                                <span className="tooltip-text">
+                                    Sales Office Description must be alphanumeric and up to 30 characters.
+                                </span>
+                            </span>
+                            <input
+                                type="text"
+                                id="salesOfficeDesc"
+                                name="salesOfficeDesc"
+                                value={formData.salesOfficeDesc}
+                                onChange={handleChange}
+                                maxLength={30}
+                                required
+                            />
+                            {errors.salesOfficeDesc && <span className="error">{errors.salesOfficeDesc}</span>}
                         </div>
                     </div>
+                </div>
 
-                    {/* Address Details */}
-                    <div className="item-box">
-                        <h2>Address Details</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="street1">Street 1*</label>
-                                <input
-                                    type="text"
-                                    id="street1"
-                                    name="street1"
-                                    value={formData.street1}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                    required
-                                />
-                                {errors.street1 && <span className="error">{errors.street1}</span>}
-                            </div>
-
-                            <div className="data">
-                                <label htmlFor="street2">Street 2</label>
-                                <input
-                                    type="text"
-                                    id="street2"
-                                    name="street2"
-                                    value={formData.street2}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                />
-                                {errors.street2 && <span className="error">{errors.street2}</span>}
-                            </div>
-
-                            
-
-                            <div className="data">
-                                <label htmlFor="state">State*</label>
-                                <input
-                                    type="text"
-                                    id="state"
-                                    name="state"
-                                    value={formData.state}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.state && <span className="error">{errors.state}</span>}
-                            </div>
-
-                            
-
-<div className="data">
+                {/* Address Details */}
+                <div className="item-box">
+                    <h2>Address Details</h2>
+                    <div className="data-container">
+                        <div className="data">
+                            <label htmlFor="street1">Street 1*</label>
+                            <input
+                                type="text"
+                                id="street1"
+                                name="street1"
+                                value={formData.street1}
+                                onChange={handleChange}
+                                maxLength={50}
+                                required
+                            />
+                            {errors.street1 && <span className="error">{errors.street1}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="street2">Street 2</label>
+                            <input
+                                type="text"
+                                id="street2"
+                                name="street2"
+                                value={formData.street2}
+                                onChange={handleChange}
+                                maxLength={50}
+                            />
+                            {errors.street2 && <span className="error">{errors.street2}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="state">State*</label>
+                            <input
+                                type="text"
+                                id="state"
+                                name="state"
+                                value={formData.state}
+                                onChange={handleChange}
+                                maxLength={30}
+                                required
+                            />
+                            {errors.state && <span className="error">{errors.state}</span>}
+                        </div>
+                           <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -527,57 +556,56 @@ export default function CreateSalesOfficeForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
-
-
-                            <div className="data">
-                                <label htmlFor="pinCode">Pin Code*</label>
-                                <input
-                                    type="text"
-                                    id="pinCode"
-                                    name="pinCode"
-                                    value={formData.pinCode}
-                                    onChange={handleChange}
-                                    maxLength={6}
-                                    required
-                                />
-                                {errors.pinCode && <span className="error">{errors.pinCode}</span>}
-                            </div>
+                        <div className="data">
+                            <label htmlFor="city">City*</label>
+                            <select
+                                id="city"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">Select a city</option>
+                                {formData.country === "India"
+                                    ? indianCities.map((city) => (
+                                        <option key={city} value={city}>
+                                            {city}
+                                        </option>
+                                    ))
+                                    : otherCities.map((city) => (
+                                        <option key={city} value={city}>
+                                            {city}
+                                        </option>
+                                    ))}
+                            </select>
+                            {errors.city && <span className="error">{errors.city}</span>}
+                        </div>
+                        <div className="data">
+                            <label htmlFor="pinCode">Pin Code*</label>
+                            <input
+                                type="text"
+                                id="pinCode"
+                                name="pinCode"
+                                value={formData.pinCode}
+                                onChange={handleChange}
+                                maxLength={6}
+                                required
+                            />
+                            {errors.pinCode && <span className="error">{errors.pinCode}</span>}
                         </div>
                     </div>
+                </div>
 
-                    {/* Submit Button */}
-                    <div className="submit-button">
-            <button type="submit">Save</button>
-          </div>
-                </form>
-                <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
-            </div>
-     
+                {/* Submit Button */}
+                <div className="submit-button">
+                    <button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Creating..." : "Save"}
+                    </button>
+                </div>
+            </form>
+            <button className="cancel-button-header" onClick={handleCancel}>
+                Cancel
+            </button>
+        </div>
     );
 }

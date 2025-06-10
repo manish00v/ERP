@@ -94,40 +94,7 @@ const factoryUnitSchema = Joi.object({
       'any.required': 'Pin Code is required'
     }),
   
-  factoryPhone: Joi.string()
-    .length(10)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.base': 'Factory Phone should be a string',
-      'string.length': 'Factory Phone should be exactly 10 digits',
-      'string.pattern.base': 'Factory Phone should contain only numbers',
-      'any.required': 'Factory Phone is required'
-    }),
-  
-  mobileNumber: Joi.string()
-    .length(10)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.base': 'Mobile Number should be a string',
-      'string.length': 'Mobile Number should be exactly 10 digits',
-      'string.pattern.base': 'Mobile Number should contain only numbers',
-      'any.required': 'Mobile Number is required'
-    }),
-  
-  factoryEmail: Joi.string()
-    .max(20)
-    .email()
-    .required()
-    .messages({
-      'string.base': 'Factory Email should be a string',
-      'string.max': 'Factory Email should not exceed 20 characters',
-      'string.email': 'Factory Email should be a valid email address',
-      'any.required': 'Factory Email is required'
-    }),
-
-    language: Joi.string()
+  language: Joi.string()
     .valid('EN', 'ES', 'FR', 'DE', 'IT', 'NL', 'ID', 'VI')
     .required()
     .messages({
@@ -138,58 +105,252 @@ const factoryUnitSchema = Joi.object({
   
   businessEntityCode: Joi.string()
     .length(4)
-    .required()
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
     .messages({
       'string.base': 'Business Entity Code must be a string',
       'string.length': 'Business Entity Code must be 4 characters',
-      'any.required': 'Business Entity Code is required'
+      'string.pattern.base': 'Business Entity Code must be alphanumeric'
+    }),
+     deliveryLocationCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null)
+    .messages({
+      'string.base': 'Delivery Location Code must be a string',
+      'string.length': 'Delivery Location Code must be 4 characters',
+      'string.pattern.base': 'Delivery Location Code must be alphanumeric'
+    }),
+
+    InventoryUnitId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Inventory Unit ID must be a string',
+      'string.length': 'Inventory Unit ID must be 4 characters',
+      'string.pattern.base': 'Inventory Unit ID must be alphanumeric'
+    }),
+
+  InventoryBayId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Inventory Bay ID must be a string',
+      'string.length': 'Inventory Bay ID must be 4 characters',
+      'string.pattern.base': 'Inventory Bay ID must be alphanumeric'
+    }),
+
+  sourcingUnitId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Sourcing Unit ID must be a string',
+      'string.length': 'Sourcing Unit ID must be 4 characters',
+      'string.pattern.base': 'Sourcing Unit ID must be alphanumeric'
+    }),
+
+  sourcingTeamId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Sourcing Team ID must be a string',
+      'string.length': 'Sourcing Team ID must be 4 characters',
+      'string.pattern.base': 'Sourcing Team ID must be alphanumeric'
     })
 });
 
 const updateFactoryUnitSchema = Joi.object({
   factoryUnitName: Joi.string()
     .max(30)
-    .pattern(/^[a-zA-Z0-9 ]+$/),
-  street1: Joi.string().max(50),
-  street2: Joi.string().max(50).allow('', null),
+    .pattern(/^[a-zA-Z0-9 ]+$/)
+    .messages({
+      'string.base': 'Factory Unit Name should be a string',
+      'string.max': 'Factory Unit Name should not exceed 30 characters',
+      'string.pattern.base': 'Factory Unit Name should be alphanumeric'
+    }),
+  
+  street1: Joi.string()
+    .max(50)
+    .messages({
+      'string.base': 'Street 1 should be a string',
+      'string.max': 'Street 1 should not exceed 50 characters'
+    }),
+  
+  street2: Joi.string()
+    .max(50)
+    .allow('', null)
+    .messages({
+      'string.base': 'Street 2 should be a string',
+      'string.max': 'Street 2 should not exceed 50 characters'
+    }),
+  
   city: Joi.string()
     .max(30)
-    .pattern(/^[a-zA-Z ]+$/),
+    .pattern(/^[a-zA-Z ]+$/)
+    .messages({
+      'string.base': 'City should be a string',
+      'string.max': 'City should not exceed 30 characters',
+      'string.pattern.base': 'City should contain only letters'
+    }),
+  
   state: Joi.string()
     .max(30)
-    .pattern(/^[a-zA-Z ]+$/),
-  region: Joi.string().max(50).allow('', null),
+    .pattern(/^[a-zA-Z ]+$/)
+    .messages({
+      'string.base': 'State should be a string',
+      'string.max': 'State should not exceed 30 characters',
+      'string.pattern.base': 'State should contain only letters'
+    }),
+  
+  region: Joi.string()
+    .max(50)
+    .allow('', null)
+    .messages({
+      'string.base': 'Region should be a string',
+      'string.max': 'Region should not exceed 50 characters'
+    }),
+  
   country: Joi.string()
     .max(30)
-    .pattern(/^[a-zA-Z ]+$/),
+    .pattern(/^[a-zA-Z ]+$/)
+    .messages({
+      'string.base': 'Country should be a string',
+      'string.max': 'Country should not exceed 30 characters',
+      'string.pattern.base': 'Country should contain only letters'
+    }),
+  
   pinCode: Joi.string()
     .min(4)
     .max(6)
-    .pattern(/^[0-9]+$/),
-  factoryPhone: Joi.string()
-    .length(10)
-    .pattern(/^[0-9]+$/),
-  mobileNumber: Joi.string()
-    .length(10)
-    .pattern(/^[0-9]+$/),
+    .pattern(/^[0-9]+$/)
+    .messages({
+      'string.base': 'Pin Code should be a string',
+      'string.min': 'Pin Code should be between 4 to 6 digits',
+      'string.max': 'Pin Code should be between 4 to 6 digits',
+      'string.pattern.base': 'Pin Code should contain only numbers'
+    }),
+  
   language: Joi.string()
-    .valid('EN', 'ES', 'FR', 'DE', 'IT', 'NL', 'ID', 'VI'),
+    .valid('EN', 'ES', 'FR', 'DE', 'IT', 'NL', 'ID', 'VI')
+    .messages({
+      'string.base': 'Language should be a string',
+      'any.only': 'Language must be one of EN, ES, FR, DE, IT, NL, ID, VI'
+    }),
+  
   businessEntityCode: Joi.string()
-    .length(4),
-  factoryEmail: Joi.string()
-    .max(20)
-    .email()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow('', null)
+    .messages({
+      'string.base': 'Business Entity Code must be a string',
+      'string.length': 'Business Entity Code must be 4 characters',
+      'string.pattern.base': 'Business Entity Code must be alphanumeric'
+    }),
+
+    deliveryLocationCode: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Delivery Location Code must be a string',
+      'string.length': 'Delivery Location Code must be 4 characters',
+      'string.pattern.base': 'Delivery Location Code must be alphanumeric'
+    }),
+
+    InventoryUnitId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Inventory Unit ID must be a string',
+      'string.length': 'Inventory Unit ID must be 4 characters',
+      'string.pattern.base': 'Inventory Unit ID must be alphanumeric'
+    }),
+
+  InventoryBayId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Inventory Bay ID must be a string',
+      'string.length': 'Inventory Bay ID must be 4 characters',
+      'string.pattern.base': 'Inventory Bay ID must be alphanumeric'
+    }),
+
+  sourcingUnitId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Sourcing Unit ID must be a string',
+      'string.length': 'Sourcing Unit ID must be 4 characters',
+      'string.pattern.base': 'Sourcing Unit ID must be alphanumeric'
+    }),
+
+  sourcingTeamId: Joi.string()
+    .length(4)
+    .pattern(/^[a-zA-Z0-9]+$/)
+    .allow(null, '')
+    .messages({
+      'string.base': 'Sourcing Team ID must be a string',
+      'string.length': 'Sourcing Team ID must be 4 characters',
+      'string.pattern.base': 'Sourcing Team ID must be alphanumeric'
+    })
 }).min(1);
 
 const validateFactoryUnit = (data) => {
-  return factoryUnitSchema.validate(data, { abortEarly: false });
+  const { error, value } = factoryUnitSchema.validate(data, { 
+    abortEarly: false,
+    allowUnknown: false
+  });
+
+  if (error) {
+    return {
+      error: {
+        name: 'ValidationError',
+        message: 'Factory Unit validation failed',
+        details: error.details.map(detail => ({
+          field: detail.path.join('.'),
+          message: detail.message.replace(/['"]+/g, ''),
+          type: detail.type
+        }))
+      }
+    };
+  }
+
+  return { value };
 };
 
 const validateFactoryUnitUpdate = (data) => {
-  return updateFactoryUnitSchema.validate(data, { abortEarly: false });
+  const { error, value } = updateFactoryUnitSchema.validate(data, { 
+    abortEarly: false,
+    allowUnknown: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    return {
+      error: {
+        name: 'ValidationError',
+        message: 'Factory Unit update validation failed',
+        details: error.details.map(detail => ({
+          field: detail.path.join('.'),
+          message: detail.message.replace(/['"]+/g, ''),
+          type: detail.type
+        }))
+      }
+    };
+  }
+
+  return { value };
 };
 
 module.exports = {
   validateFactoryUnit,
-  validateFactoryUnitUpdate
+  validateFactoryUnitUpdate,
+  factoryUnitSchema // Optional: export schema for documentation
 };

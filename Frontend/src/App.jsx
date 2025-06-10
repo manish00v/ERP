@@ -2,7 +2,6 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import OrganizationUnitsPage from "./pages/OrgStructure/Org/OrganizationPage";
-import SalesChannelPage from "./pages/OrgStructure/SalesChannel/SalesChannelPage";
 import BusinessUnitPage from "./pages/OrgStructure/BusinessUnit/BusinessUnitPage";
 import SalesOfficePage from "./pages/OrgStructure/SalesOffice/SalesOfficePage";
 
@@ -11,13 +10,12 @@ import Homepage from "./pages/HomePage/HomePage";
 import CreateSalesChannelForm from "./pages/OrgStructure/SalesChannel/CreateSalesChannel/CreateSalesChannelForm";
 import EditSalesChannelPage from "./pages/OrgStructure/SalesChannel/EditSalesChannel/EditSalesChannelPage";
 import DisplaySalesChannelPage from "./pages/OrgStructure/SalesChannel/DisplaySalesChannel/DisplaySalesChannelPage";
-import CreateBusinessUnitPage from "./pages/OrgStructure/BusinessUnit/CreateBusinessUnit/CreateBusinessUnitPage";
+import CreateBusinessUnitForm from "./pages/OrgStructure/BusinessUnit/CreateBusinessUnit/CreateBusinessUnitForm";
 import EditBusinessUnitPage from "./pages/OrgStructure/BusinessUnit/EditBusinessUnit/EditBusinessUnitPage";
 import DisplayBusinessUnitPage from "./pages/OrgStructure/BusinessUnit/DisplayBusinessUnit/DisplayBusinessUnitPage";
-import CreateBusinesEntityPage from "./pages/OrgStructure/BusinessEntity/CreateBusinessEntity/CreateBusinessEntityPage";
 import EditBusinessEntityPage from "./pages/OrgStructure/BusinessEntity/EditBusinessEntity/EditBusinessEntityPage";
 import DisplayBusinessEntityPage from "./pages/OrgStructure/BusinessEntity/DisplayBusinessEntity/DisplayBusinessEntityPage";
-import CreateSalesOfficePage from "./pages/OrgStructure/SalesOffice/CreateSalesOffice/CreateSalesOfficePage";
+import CreateSalesOfficeForm from "./pages/OrgStructure/SalesOffice/CreateSalesOffice/CreateSalesOfficeForm";
 import EditSalesOfficePage from "./pages/OrgStructure/SalesOffice/EditSalesOffice/EditSalesOfficePage";
 import DisplaySalesOfficePage from "./pages/OrgStructure/SalesOffice/DisplaySalesOffice/DisplaySalesOfficePage";
 import CreateManufacturingFactoryUnitForm from "./pages/OrgStructure/ManufacturingFactoryUnit/CreateManufacturingFactoryUnit/CreateManufacturingFactoryUnitForm"; 
@@ -26,8 +24,6 @@ import DisplayManufacturingFactoryUnitForm from "./pages/OrgStructure/Manufactur
 import CreateDeliveryLocationForm from "./pages/OrgStructure/DeliveryLocation/CreateDeliveryLocation/CreateDeliveryLocationForm"; 
 import EditDeliveryLocationForm from "./pages/OrgStructure/DeliveryLocation/EditDeliveryLocation/EditDeliveryLocationForm";   
 import DisplayDeliveryLocationForm from "./pages/OrgStructure/DeliveryLocation/DisplayDeliveryLocation/DisplayDeliveryLocationForm";  
-import CreateManufacturingFactoryUnitPage from "./pages/OrgStructure/ManufacturingFactoryUnit/CreateManufacturingFactoryUnit/CreateManufacturingFactoryUnitPage";
-import CreateDeliveryLocationPage from "./pages/OrgStructure/DeliveryLocation/CreateDeliveryLocation/CreateDeliveryLocationPage"; 
 import CreateSalesTeamForm from "./pages/OrgStructure/SalesTeam/CreateSalesTeam/CreateSalesTeamForm";
 import EditSalesTeamForm from "./pages/OrgStructure/SalesTeam/EditSalesTeam/EditSalesTeamForm";   
 import DisplaySalesTeamPage from "./pages/OrgStructure/SalesTeam/DisplaySalesTeam/DisplaySalesTeamPage"; 
@@ -48,14 +44,7 @@ import EditSourcingUnitForm from "./pages/OrgStructure/SourcingUnit/EditSourcing
 
 
 
-import DisplaySalesChannelForm from "./pages/OrgStructure/SalesChannel/DisplaySalesChannel/DisplaySalesChannelForm";  
-import EditSalesChannelForm from "./pages/OrgStructure/SalesChannel/EditSalesChannel/EditSalesChannelForm";
-import DisplaySalesOfficeForm from "./pages/OrgStructure/SalesOffice/DisplaySalesOffice/DisplaySalesOfficeForm";
-import EditSalesOfficeForm from "./pages/OrgStructure/SalesOffice/EditSalesOffice/EditSalesOfficeForm";
-import DisplayBusinessUnitForm from "./pages/OrgStructure/BusinessUnit/DisplayBusinessUnit/DisplayBusinessUnitForm";
-import EditBusinessUnitForm from "./pages/OrgStructure/BusinessUnit/EditBusinessUnit/EditBusinessUnitForm";
-import EditBusinessEntityForm from "./pages/OrgStructure/BusinessEntity/EditBusinessEntity/EditBusinessEntityForm";
-
+import CreateBusinessEntityForm from "./pages/OrgStructure/BusinessEntity/CreateBusinessEntity/CreateBusinessEntityForm";
 
 
 
@@ -118,7 +107,6 @@ function App() {
           }
         >
           <Route path="/organizationPage" element={<OrganizationUnitsPage />} />
-          <Route path="/salesChannel" element={<SalesChannelPage />} />
           <Route path="/businessUnit" element={<BusinessUnitPage />} />
 
           <Route path="/salesOffice" element={<SalesOfficePage />} />
@@ -135,125 +123,76 @@ function App() {
 
           <Route path="/BUMFUBE" element={<BUMFUBE />} />
           <Route path="/createAssignment" element={<CreateAssignmentTable/>} />
-          <Route path="/editAssignment" element={<EditAssignmentTable/>} />
+          <Route path="/editAssignment/:businessEntityCode" element={<EditAssignmentTable/>} />
           <Route path="/SoScBu" element={<SoScBuTable />} />
           <Route path="/createSoScBuAssignment" element={<CreateSoScBuAssignmentTable />} />  
-          <Route path="/editSoScBuAssignment" element={<EditSoScBuAssignmentTable />} />
+          <Route path="/editSoScBuAssignment/:businessUnitCode" element={<EditSoScBuAssignmentTable />} />
           <Route path="/SoStSp" element={<SoStSpTable />} />
           <Route path="/createSoStSpAssignment" element={<CreateSoStSpAssignmentTable />} />  
           <Route path="/editSoStSpAssignment" element={<EditSoStSpAssignmentTable />} />
           <Route path="/MfuSuSct" element={<MfuSuSctTable />} />
           <Route path="/createMfuSuSctAssignment" element={<CreateMfuSuSctAssignmentTable />} />  
-          <Route path="/editMfuSuSctAssignment" element={<EditMfuSuSctAssignmentTable />} />
+          <Route path="/editMfuSuSctAssignment/:factoryUnitCode" element={<EditMfuSuSctAssignmentTable />} />
           <Route path="/MfuIuIb" element={<MfuIuIbTable />} />
           <Route path="/createMfuIuIbAssignment" element={<CreateMfuIuIbAssignmentTable />} />  
-          <Route path="/editMfuIuIbAssignment" element={<EditMfuIuIbAssignmentTable />} />
+          <Route path="/editMfuIuIbAssignment/:factoryUnitCode" element={<EditMfuIuIbAssignmentTable />} />
           <Route path="/MfuDl" element={<MfuDlTable />} />
           <Route path="/createMfuDlAssignment" element={<CreateMfuDlAssignmentTable />} />  
-          <Route path="/editMfuDlAssignment" element={<EditMfuDlAssignmentTable />} />
+          <Route path="/editMfuDlAssignment/:factoryUnitCode" element={<EditMfuDlAssignmentTable />} />
           
 
 
 
           <Route path="/createSalesChannel" element={<CreateSalesChannelForm />} />
-          <Route path="/editSalesChannel" element={<EditSalesChannelPage/>} />
+          <Route path="/editSalesChannel/:salesChannelId" element={<EditSalesChannelPage/>} />
           <Route
             path="/displaySalesChannel"
             element={<DisplaySalesChannelPage />}
           />
-          <Route path="/createBusinessUnit" element={<CreateBusinessUnitPage />} />
-          <Route path="/editBusinessUnit" element={<EditBusinessUnitPage />} />
+          <Route path="/createBusinessUnit" element={<CreateBusinessUnitForm/>} />
+          <Route path="/editBusinessUnit/:businessUnitCode" element={<EditBusinessUnitPage />} />
           <Route path="/displayBusinessUnit" element={<DisplayBusinessUnitPage />} />
-          <Route path="/createBusinessEntity" element={<CreateBusinesEntityPage />} />
-          <Route path="/editBusinessEntity" element={<EditBusinessEntityPage />} />
+          <Route path="/createBusinessEntity" element={<CreateBusinessEntityForm />} />
+          <Route path="/editBusinessEntity/:businessEntityCode" element={<EditBusinessEntityPage />} />
           <Route path="/displayBusinessEntity" element={<DisplayBusinessEntityPage />} />
           <Route
             path="/createSalesOffice"
-            element={<CreateSalesOfficePage />}
+            element={<CreateSalesOfficeForm />}
           />
-          <Route path="/editSalesOffice" element={<EditSalesOfficePage />} />
+          <Route path="/editSalesOffice/:salesOfficeCode" element={<EditSalesOfficePage />} />
           <Route
             path="/displaySalesOffice"
             element={<DisplaySalesOfficePage />}
           />
         <Route path="/displayInventoryBay" element={<DisplayInventoryBayPage />} />
         <Route path="/createInventoryBay" element={<CreateInventoryBayForm />} />
-        <Route path="/editInventoryBay" element={<EditInventoryBayForm />} />
+        <Route path="/editInventoryBay/:InventoryBayId" element={<EditInventoryBayForm />} />
         <Route path="/displayInventoryUnit" element={<DisplayInventoryUnitPage />} />
         <Route path="/createInventoryUnit" element={<CreateInventoryUnitForm />} />
-        <Route path="/editInventoryUnit" element={<EditInventoryUnitForm />} />
+        <Route path="/editInventoryUnit/:InventoryUnitId" element={<EditInventoryUnitForm />} />
         <Route path="/displaySourcingTeam" element={<DisplaySourcingTeamPage />} />
         <Route path="/createSourcingTeam" element={<CreateSourcingTeamForm />} />
         <Route path="/displaySourcingUnit" element={<DisplaySourcingUnitPage />} />
-        <Route path="/editSourcingTeam" element={<EditSourcingTeamForm />} />
+        <Route path="/editSourcingTeam/:SourcingTeamId" element={<EditSourcingTeamForm />} />
         <Route path="/createSourcingUnit" element={<CreateSourcingUnitForm />} />
-        <Route path="/editSourcingUnit" element={<EditSourcingUnitForm />} />
+        <Route path="/editSourcingUnit/:SourcingUnitId" element={<EditSourcingUnitForm />} />
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-         
-
-                    <Route
-            path="/displaySalesChannelForm"
-            element={<DisplaySalesChannelForm />}
-          />
-          <Route path="/editSalesChannelForm" element={<EditSalesChannelForm />} />
-          <Route
-            path="/displaySalesOfficeForm"
-            element={<DisplaySalesOfficeForm />}
-          />
-          <Route
-            path="/editSalesOfficeForm"
-            element={<EditSalesOfficeForm />}
-          />
-          <Route
-            path="/displayBusinessEntityForm"
-            element={<DisplayBusinessUnitForm />}
-          />
-          <Route path="/editBusinessUnitForm" element={<EditBusinessUnitForm />} />
-          {/* <Route
-            path="/displayBusinessEntityForm"
-            element={<DisplayBusinessEntityForm />}
-          /> */}
-          <Route path="/editBusinessEntityForm" element={<EditBusinessEntityForm />} />
           <Route
             path="/displayManufacturingFactoryUnitForm"
             element={<DisplayManufacturingFactoryUnitForm />}
           />
-          <Route path="/editManufacturingFactoryUnitForm" element={<EditManufacturingFactoryUnitForm />} />   
+          <Route path="/editManufacturingFactoryUnitForm/:factoryUnitCode" element={<EditManufacturingFactoryUnitForm />} />   
           <Route
             path="/displayDeliveryLocationForm"
             element={<DisplayDeliveryLocationForm />}
           />
-          <Route path="/editDeliveryLocationForm" element={<EditDeliveryLocationForm />} /> 
+          <Route path="/editDeliveryLocationForm/:deliveryLocationCode" element={<EditDeliveryLocationForm />} /> 
           <Route path="/createDeliveryLocationForm" element={<CreateDeliveryLocationForm />} />
           <Route path="/createManufacturingFactoryUnitForm" element={<CreateManufacturingFactoryUnitForm />} /> 
-          <Route path="/createDeliveryLocationPage" element={<CreateDeliveryLocationPage />} />
-          <Route path="/createManufacturingFactoryUnitPage" element={<CreateManufacturingFactoryUnitPage />} /> 
           <Route path="/createSalesTeamForm" element={<CreateSalesTeamForm />} />
-          <Route path="/editSalesTeamForm" element={<EditSalesTeamForm />} />   
+          <Route path="/editSalesTeamForm/:salesTeamCode" element={<EditSalesTeamForm />} />   
           <Route path="/displaySalesTeamPage" element={<DisplaySalesTeamPage />} />
           
 

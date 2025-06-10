@@ -28,15 +28,15 @@ class SalesOfficeService {
     return prisma.salesOffice.findMany();
   }
 
-  static async getSalesOfficeById(id) {
+  static async getSalesOfficeById(salesOfficeCode) {
     return prisma.salesOffice.findUnique({
-      where: { id: parseInt(id) }
+      where: { salesOfficeCode: (salesOfficeCode) }
     });
   }
 
-  static async updateSalesOffice(id, data) {
+  static async updateSalesOffice(salesOfficeCode, data) {
     const existingOffice = await prisma.salesOffice.findUnique({
-      where: { id: parseInt(id) }
+      where: { salesOfficeCode: (salesOfficeCode) }
     });
 
     if (!existingOffice) {
@@ -53,14 +53,14 @@ class SalesOfficeService {
     }
 
     return prisma.salesOffice.update({
-      where: { id: parseInt(id) },
+      where: { salesOfficeCode: (salesOfficeCode) },
       data
     });
   }
 
-  static async deleteSalesOffice(id) {
+  static async deleteSalesOffice(salesOfficeCode) {
     return prisma.salesOffice.delete({
-      where: { id: parseInt(id) }
+      where: { salesOfficeCode: (salesOfficeCode) }
     });
   }
 }

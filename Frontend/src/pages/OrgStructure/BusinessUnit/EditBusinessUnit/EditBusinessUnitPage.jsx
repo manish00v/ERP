@@ -3,13 +3,16 @@ import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContex
 import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 import { FaEdit, FaSave } from "react-icons/fa";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function EditBusinessUnit() {
     const { setGoBackUrl } = useContext(FormPageHeaderContext);
-    const [ errors, setErrors] = useState("");
-       const [formData, setFormData] = useState({
-        unitCode: "",
-        unitName: "",
+    const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [formData, setFormData] = useState({
+        businessUnitCode: "",
+        businessUnitDesc: "",
         street1: "",
         street2: "",
         city: "",
@@ -20,26 +23,28 @@ export default function EditBusinessUnit() {
     });
     const [isEditing, setIsEditing] = useState(false);
     const [originalData, setOriginalData] = useState({});
-
+    const { businessUnitCode } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         setGoBackUrl("/displayBusinessUnit");
-    const mockData = {
-        unitCode: "ABC1",
-        unitName: "Sample Business",
-        street1: "123 Main St",
-        street2: "Apt 4B",
-        city: "Mumbai",
-        state: "Maharashtra",
-        region: "Western Asia",
-        country: "India",
-        pinCode: "400001",
-      };
-      setFormData(mockData);
-      setOriginalData(mockData);
-    }, [setGoBackUrl]);
+        fetchBusinessUnit();
+    }, [setGoBackUrl, businessUnitCode]);
 
-    const indianCities = [
+    const fetchBusinessUnit = async () => {
+        try {
+            const response = await axios.get(`http://localhost:3003/api/business-units/${businessUnitCode}`);
+            setFormData(response.data);
+            setOriginalData(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching business unit:", error);
+            alert("Failed to fetch business unit data");
+            navigate("/displayBusinessUnit");
+        }
+    };
+
+      const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -90,17 +95,16 @@ export default function EditBusinessUnit() {
     
       ];
 
- 
     const validateField = (name, value) => {
         switch (name) {
-            case 'factoryCode':
+            case 'businessUnitCode':
                 if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
-                    return 'Factory Unit Code must be exactly 4 alphanumeric characters';
+                    return 'Business Unit Code must be exactly 4 alphanumeric characters';
                 }
                 break;
-            case 'factoryName':
+            case 'businessUnitDesc':
                 if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
-                    return 'Factory Unit Name must be alphanumeric and up to 30 characters';
+                    return 'Business Unit Name must be alphanumeric and up to 30 characters';
                 }
                 break;
             case 'street1':
@@ -126,17 +130,6 @@ export default function EditBusinessUnit() {
                     return 'Pin code must be 4-6 digits';
                 }
                 break;
-            case 'phoneNumber':
-            case 'mobileNumber':
-                if (!/^\d{10}$/.test(value)) {
-                    return 'Phone number must be exactly 10 digits';
-                }
-                break;
-            case 'email':
-                if (value.length > 20 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    return 'Email must be valid and up to 20 characters';
-                }
-                break;
             default:
                 return '';
         }
@@ -151,194 +144,208 @@ export default function EditBusinessUnit() {
         // Validate the field
         const error = validateField(name, value);
         setErrors((prev) => ({
-          ...prev,
-          [name]: error,
+            ...prev,
+            [name]: error,
         }));
     
         // If country changes, reset city
         if (name === "country") {
-          setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-            city: "" // Reset city when country changes
-          }));
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+                city: "" // Reset city when country changes
+            }));
         } else {
-          setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-          }));
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
         }
-      };
+    };
     
-      const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
     
         let formValid = true;
         const newErrors = {};
     
         Object.keys(formData).forEach((key) => {
-          const error = validateField(key, formData[key]);
-          if (error) {
-            newErrors[key] = error;
-            formValid = false;
-          }
+            const error = validateField(key, formData[key]);
+            if (error) {
+                newErrors[key] = error;
+                formValid = false;
+            }
         });
     
         setErrors(newErrors);
     
         if (formValid) {
-          console.log("Form data valid, ready to submit:", formData);
-          alert("Business Unit updated successfully!");
-          setOriginalData(formData);
-          setIsEditing(false);
+            try {
+                const response = await axios.put(
+                    `http://localhost:3003/api/business-units/${businessUnitCode}`,
+                    formData
+                );
+                alert("Business Unit updated successfully!");
+                setOriginalData(formData);
+                setIsEditing(false);
+                // Optionally refresh the data
+                fetchBusinessUnit();
+            } catch (error) {
+                console.error("Error updating business unit:", error);
+                alert("Failed to update business unit");
+            }
         } else {
-          alert("Please fix the errors in the form before submitting.");
+            alert("Please fix the errors in the form before submitting.");
         }
-      };
+    };
     
-      const handleEdit = () => {
+    const handleEdit = () => {
         setIsEditing(true);
-      };
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>
-                <div className="container">
-                        <div className="edit-controls">
-                          {isEditing ? (
-                            <button 
-                              type="submit" 
-                              form="businessEntityForm" 
-                              className="save-button-edit-page"
-                            >
-                              <FaSave /> Save
-                            </button>
-                          ) : (
-                            <button 
-                              type="button" 
-                              className="edit-button-edit-page" 
-                              onClick={handleEdit}
-                            >
-                              <FaEdit /> Edit
-                            </button>
-                          )}
+            <div className="container">
+                <div className="edit-controls">
+                    {isEditing ? (
+                        <button 
+                            type="submit" 
+                            form="businessUnitForm" 
+                            className="save-button-edit-page"
+                        >
+                            <FaSave /> Save
+                        </button>
+                    ) : (
+                        <button 
+                            type="button" 
+                            className="edit-button-edit-page" 
+                            onClick={handleEdit}
+                        >
+                            <FaEdit /> Edit
+                        </button>
+                    )}
+                </div>
+                <form id="businessUnitForm" onSubmit={handleSubmit}>
+                    {/* Business Unit Details */}
+                    <div className="header-box">
+                        <h2>Business Unit Details</h2>
+                        <div className="data-container">
+                            <div className="data">
+                                <label htmlFor="businessUnitCode">Business Unit Code*</label>
+                                <span className="info-icon-tooltip">
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        1- Business Unit Code must be exactly 4 digits. <br />
+                                        2- Business Unit Code must be unique. <br />
+                                        3- Business Unit Code must not contain any special characters.  <br />
+                                        4- Business Unit Code must not contain any spaces. <br /> 
+                                        5- Business Unit Code once created then it can be not delete. <br />
+                                    </span>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="businessUnitCode"
+                                    name="businessUnitCode"
+                                    value={formData.businessUnitCode}
+                                    onChange={handleChange}
+                                    maxLength={4}
+                                    required
+                                    readOnly={true} // Code should not be editable
+                                    className="read-only"
+                                />
+                                {errors.businessUnitCode && (
+                                    <span className="error">{errors.businessUnitCode}</span>
+                                )}
+                            </div>
+                            <div className="data">
+                                <label htmlFor="businessUnitDesc">Business Unit Name*</label>
+                                <span className="info-icon-tooltip">
+                                    <i className="fas fa-info-circle" />
+                                    <span className="tooltip-text">
+                                        Business Unit Name must be alphanumeric and up to 30 characters.
+                                    </span>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="businessUnitDesc"
+                                    name="businessUnitDesc"
+                                    value={formData.businessUnitDesc}
+                                    onChange={handleChange}
+                                    maxLength={30}
+                                    required
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.businessUnitDesc && (
+                                    <span className="error">{errors.businessUnitDesc}</span>
+                                )}
+                            </div>
                         </div>
-                        <form id="businessUnitForm" onSubmit={handleSubmit}>
-          {/* Business Unit Details */}
-          <div className="header-box">
-            <h2>Business Unit Details</h2>
-            <div className="data-container">
-              <div className="data">
-                <label htmlFor="entityCode">Business Unit Code*</label>
-                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Business Unit Code must be exactly 4 digits. <br />
-                    2- Business Unit Code must be unique. <br />
-                    3- Business Unit Code must not contain any special characters.  <br />
-                    4- Business Unit Code must not contain any spaces. <br /> 
-                    5- Business Unit Code once created then it can be not delete. <br />
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  id="unitCode"
-                  name="unitCode"
-                  value={formData.unitCode}
-                  onChange={handleChange}
-                  maxLength={4}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.unitCode && (
-                  <span className="error">{errors.unitCode}</span>
-                )}
-              </div>
-              <div className="data">
-                <label htmlFor="unitName">Business Unit Name*</label>
-                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    Business Unit Name must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  id="unitName"
-                  name="unitName"
-                  value={formData.unitName}
-                  onChange={handleChange}
-                  maxLength={30}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.unitName && (
-                  <span className="error">{errors.unitName}</span>
-                )}
-              </div>
-            </div>
-          </div>
-                            {/* Address Details */}
-                            <div className="item-box">
-            <h2>Address Details</h2>
-            <div className="data-container">
-              <div className="data">
-                <label htmlFor="street1">Street 1</label>
-                <div className="input-container">
-                  <textarea
-                    type="text"
-                    id="street1"
-                    name="street1"
-                    value={formData.street1}
-                    onChange={handleChange}
-                    maxLength={50}
-                    placeholder="Street 1"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
-                    readOnly={!isEditing}
-                  />
-                  {errors.street1 && (
-                    <span className="error">{errors.street1}</span>
-                  )}
-                </div>
-              </div>
-              <div className="data">
-                <label htmlFor="street2">Street 2</label>
-                <div className="input-container">
-                  <textarea
-                    type="text"
-                    id="street2"
-                    name="street2"
-                    value={formData.street2}
-                    onChange={handleChange}
-                    maxLength={50}
-                    placeholder="Street 2"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
-                    readOnly={!isEditing}
-                  />
-                  {errors.street2 && (
-                    <span className="error">{errors.street2}</span>
-                  )}
-                </div>
-              </div>
-              <div className="data">
-                <label htmlFor="state">State*</label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  maxLength={30}
-                  required
-                  placeholder="State"
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.state && <span className="error">{errors.state}</span>}
-              </div>
+                    </div>
+                    {/* Address Details */}
+                    <div className="item-box">
+                        <h2>Address Details</h2>
+                        <div className="data-container">
+                            <div className="data">
+                                <label htmlFor="street1">Street 1</label>
+                                <div className="input-container">
+                                    <textarea
+                                        type="text"
+                                        id="street1"
+                                        name="street1"
+                                        value={formData.street1}
+                                        onChange={handleChange}
+                                        maxLength={50}
+                                        placeholder="Street 1"
+                                        className={`resizable-input ${!isEditing ? "read-only" : ""}`}
+                                        readOnly={!isEditing}
+                                    />
+                                    {errors.street1 && (
+                                        <span className="error">{errors.street1}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="data">
+                                <label htmlFor="street2">Street 2</label>
+                                <div className="input-container">
+                                    <textarea
+                                        type="text"
+                                        id="street2"
+                                        name="street2"
+                                        value={formData.street2}
+                                        onChange={handleChange}
+                                        maxLength={50}
+                                        placeholder="Street 2"
+                                        className={`resizable-input ${!isEditing ? "read-only" : ""}`}
+                                        readOnly={!isEditing}
+                                    />
+                                    {errors.street2 && (
+                                        <span className="error">{errors.street2}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="data">
+                                <label htmlFor="state">State*</label>
+                                <input
+                                    type="text"
+                                    id="state"
+                                    name="state"
+                                    value={formData.state}
+                                    onChange={handleChange}
+                                    maxLength={30}
+                                    required
+                                    placeholder="State"
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.state && <span className="error">{errors.state}</span>}
+                            </div>
 
-              <div className="data">
+                                <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -346,9 +353,6 @@ export default function EditBusinessUnit() {
                   value={formData.region}
                   onChange={handleChange}
                   required
-                  placeholder="Region"
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a region</option>
                   {[
@@ -390,8 +394,6 @@ export default function EditBusinessUnit() {
                   value={formData.country}
                   onChange={handleChange}
                   required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a country</option>
                   {[
@@ -601,65 +603,64 @@ export default function EditBusinessUnit() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
+                            <div className="data">
+                                <label htmlFor="city">City*</label>
+                                <select
+                                    id="city"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                >
+                                    <option value="">Select a city</option>
+                                    {formData.country === "India"
+                                        ? indianCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))
+                                        : otherCities.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                </select>
+                                {errors.city && <span className="error">{errors.city}</span>}
+                            </div>
 
-              <div className="data">
-                <label htmlFor="pinCode">Pin Code*</label>
-                <input
-                  type="text"
-                  id="pinCode"
-                  name="pinCode"
-                  value={formData.pinCode}
-                  onChange={handleChange}
-                  maxLength={6}
-                  required
-                  placeholder="Pin Code"
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
-                />
-                {errors.pinCode && (
-                  <span className="error">{errors.pinCode}</span>
-                )}
-              </div>
+                            <div className="data">
+                                <label htmlFor="pinCode">Pin Code*</label>
+                                <input
+                                    type="text"
+                                    id="pinCode"
+                                    name="pinCode"
+                                    value={formData.pinCode}
+                                    onChange={handleChange}
+                                    maxLength={6}
+                                    required
+                                    placeholder="Pin Code"
+                                    readOnly={!isEditing}
+                                    className={!isEditing ? "read-only" : ""}
+                                />
+                                {errors.pinCode && (
+                                    <span className="error">{errors.pinCode}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>    
+                </form>
             </div>
-          </div>    
-                        </form>
-                    
-                </div>
-                <FormPageHeader
+            <FormPageHeader
                 onCancel={() => {
-          if (isEditing) {
-            setFormData(originalData);
-            setErrors({});
-            setIsEditing(false);
-          }
-        }}
-        />
+                    if (isEditing) {
+                        setFormData(originalData);
+                        setErrors({});
+                        setIsEditing(false);
+                    }
+                }}
+            />
         </>
     );
 }

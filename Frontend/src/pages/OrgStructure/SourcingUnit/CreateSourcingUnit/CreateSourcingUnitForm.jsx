@@ -1,16 +1,15 @@
-import { useState} from "react";
-
+import { useState } from "react";
+import axios from "axios";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 
 export default function CreateSourcingUnitForm() {
-    
   const [formData, setFormData] = useState({
-    unitId: "",
-    unitDescription: ""
+    SourcingUnitId: "",
+    SourcingUnitDesc: ""
   });
 
   const [errors, setErrors] = useState({});
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCancel = () => {
     window.location.href = '/displaySourcingUnit'; 
@@ -18,12 +17,12 @@ export default function CreateSourcingUnitForm() {
 
   const validateField = (name, value) => {
     switch (name) {
-      case "unitId":
+      case "SourcingUnitId":
         if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
           return "Sourcing Unit ID must be exactly 4 alphanumeric characters";
         }
         break;
-      case "unitDescription":
+      case "SourcingUnitDesc":
         if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
           return "Description must be alphanumeric and up to 30 characters";
         }
@@ -50,8 +49,9 @@ export default function CreateSourcingUnitForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     // Validate all fields before submission
     let formValid = true;
@@ -67,32 +67,59 @@ export default function CreateSourcingUnitForm() {
 
     setErrors(newErrors);
 
-    if (formValid) {
-      // In a real app, you would send this data to your backend
-      console.log("Form data valid, ready to submit:", formData);
-      alert("Sourcing Unit created successfully (simulated)!");
-      // Reset form after successful submission
-      setFormData({
-        unitId: "",
-        unitDescription: ""
-      });
-    } else {
+    if (!formValid) {
+      setIsSubmitting(false);
       alert("Please fix the errors in the form before submitting.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5003/api/sourcing-units/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        alert("Sourcing Unit created successfully!");
+        setFormData({
+          SourcingUnitId: "",
+          SourcingUnitDesc: ""
+        });
+        // Optionally redirect to display page
+        // window.location.href = '/displaySourcingUnit';
+      }
+    } catch (error) {
+      console.error("Error creating sourcing unit:", error);
+      if (error.response) {
+        if (error.response.status === 409) {
+          alert("Error: Sourcing Unit ID already exists.");
+        } else {
+          alert(`Error: ${error.response.data.message || "Failed to create sourcing unit"}`);
+        }
+      } else {
+        alert("Network error. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-<>
-   
-    <div className="container">
-      <form onSubmit={handleSubmit}>
-        {/* Sourcing Unit Details */}
-        <div className="header-box">
-          <h2>Sourcing Unit Details</h2>
-          <div className="data-container">
-            <div className="data">
-              <label htmlFor="unitId">Sourcing Unit ID*</label>
-              <span className="info-icon-tooltip">
+    <>
+      <div className="container">
+        <form onSubmit={handleSubmit}>
+          {/* Sourcing Unit Details */}
+          <div className="header-box">
+            <h2>Sourcing Unit Details</h2>
+            <div className="data-container">
+              <div className="data">
+                <label htmlFor="SourcingUnitId">Sourcing Unit ID*</label>
+                <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
                     1- Sourcing Unit Code must be exactly 4 digits. <br />
@@ -102,53 +129,54 @@ export default function CreateSourcingUnitForm() {
                     5- Sourcing Unit Code once created then it can be not delete. <br />
                   </span>
                 </span>
-              <input
-                type="text"
-                id="unitId"
-                name="unitId"
-                value={formData.unitId}
-                onChange={handleChange}
-                maxLength={4}
-                required
-              />
-              {errors.unitId && (
-                <span className="error">{errors.unitId}</span>
-              )}
-            </div>
-            <div className="data">
-              <label htmlFor="unitDescription">Description*</label>
-              <span className="info-icon-tooltip">
+                <input
+                  type="text"
+                  id="SourcingUnitId"
+                  name="SourcingUnitId"
+                  value={formData.SourcingUnitId}
+                  onChange={handleChange}
+                  maxLength={4}
+                  required
+                />
+                {errors.SourcingUnitId && (
+                  <span className="error">{errors.SourcingUnitId}</span>
+                )}
+              </div>
+              <div className="data">
+                <label htmlFor="SourcingUnitDesc">Description*</label>
+                <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
-                  Sourcing Unit Description must be alphanumeric and up to 30 characters.
+                    Sourcing Unit Description must be alphanumeric and up to 30 characters.
                   </span>
                 </span>
-              <input
-                type="text"
-                id="unitDescription"
-                name="unitDescription"
-                value={formData.unitDescription}
-                onChange={handleChange}
-                maxLength={30}
-                required
-              />
-              {errors.unitDescription && (
-                <span className="error">{errors.unitDescription}</span>
-              )}
+                <input
+                  type="text"
+                  id="SourcingUnitDesc"
+                  name="SourcingUnitDesc"
+                  value={formData.SourcingUnitDesc}
+                  onChange={handleChange}
+                  maxLength={30}
+                  required
+                />
+                {errors.SourcingUnitDesc && (
+                  <span className="error">{errors.SourcingUnitDesc}</span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Submit Button */}
-        <div className="submit-button">
-            <button type="submit">Save</button>
+          {/* Submit Button */}
+          <div className="submit-button">
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save"}
+            </button>
           </div>
-      </form>
-      <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
-    </div>
-   
+        </form>
+        <button className="cancel-button-header" onClick={handleCancel}>
+          Cancel
+        </button>
+      </div>
     </>
   );
 }

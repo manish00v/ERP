@@ -110,7 +110,7 @@ function CreateSpStSoAssignmentTable() {
               <th>Sales Team Name</th>
               <th>Sales Office Code</th>
               <th>Sales Office Name</th>
-              
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -193,31 +193,37 @@ function CreateSpStSoAssignmentTable() {
                     className="assignment-desc-input"
                   />
                 </td>
-                
+
+                {/* Actions column with delete icon */}
+                <td>
+                  {assignmentData.length > 1 && (
+                    <button 
+                      onClick={() => handleRemoveRow(index)} 
+                      className="remove-row-button"
+                      title="Remove row"
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  )}
+                </td>
                
               </tr>
             ))}
+
+             {/* Add row button in the last row */}
+          
+              <td colSpan="7" className="add-row-cell">
+                <button 
+                  onClick={handleAddRow} 
+                  className="add-row-button"
+                  title="Add new row"
+                >
+                  <i className="fas fa-plus-circle"></i> Add Row
+                </button>
+              </td>
+         
           </tbody>
         </table>
-
-         {/* Action buttons container */}
-         <div className="table-action-buttons">
-          <button 
-            onClick={handleRemoveRow} 
-            className="remove-row-button"
-            disabled={assignmentData.length <= 1}
-            title="Remove last row"
-          >
-            -
-          </button>
-          <button 
-            onClick={handleAddRow} 
-            className="add-row-button"
-            title="Add new row"
-          >
-            +
-          </button>
-        </div>
 
       </div>
     </div>

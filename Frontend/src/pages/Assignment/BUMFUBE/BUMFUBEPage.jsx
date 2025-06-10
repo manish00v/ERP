@@ -1,22 +1,15 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from 'react-router-dom';
-import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
-
+import { useNavigate,} from 'react-router-dom';
+import axios from 'axios';
 import '../../../components/Layout/Styles/OrganizationalTable.css';
-
+import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
 
 const BEMFUBUPage = () => {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [assignments, setAssignments] = useState([]);
   const navigate = useNavigate();
-
-  // Mock data for business entity assignments
-  const mockData = [
-    { id: 1, businessEntityCode: 'BE01', mfuCode: 'MFU01', businessUnitCode: 'BU01' },
-    { id: 2, businessEntityCode: 'BE02', mfuCode: 'MFU02', businessUnitCode: 'BU02' },
-    { id: 3, businessEntityCode: 'BE03', mfuCode: 'MFU03', businessUnitCode: 'BU03' },
-  ];
 
   useEffect(() => {
     setPageTitle('Business Entity - MFU - Business Unit');
@@ -24,36 +17,49 @@ const BEMFUBUPage = () => {
 
     return () => {
       setPageTitle('');
-      setNewButtonLink('/organizationPage');
+      setNewButtonLink(null);
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  // Simulate data loading
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setIsLoading(false);
-      } catch (err) {
-        setError('Failed to load data');
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleCodeClick = (code) => {
-    navigate(`/editAssignment`);
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get('http://localhost:3003/api/business-entities');
+      
+      const transformedData = response.data
+        .filter(businessEntity => businessEntity.factoryUnitCode || businessEntity.businessUnitCode)
+        .map(businessEntity => ({
+          id: businessEntity.id,
+          beCode: businessEntity.businessEntityCode,
+          mfuCode: businessEntity.factoryUnitCode || '',
+          buCode: businessEntity.businessUnitCode || ''
+        }));
+      
+      setAssignments(transformedData);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching assignments:', err);
+      setError('Failed to load data. Please try again.');
+      setIsLoading(false);
+    }
   };
 
+  fetchData();
+}, []);
+
+  const handleCodeClick = (type, code) => {
+    if (type === 'be') {
+      navigate(`/editAssignment/${code}`);
+    } else if (type === 'mfu') {
+      navigate(`/factory-units/${code}`);
+    } else if (type === 'bu') {
+      navigate(`/business-units/${code}`);
+    }
+  };
 
   return (
     <div className="organizational-container-table">
-      {/* Top navigation */}
-
       {/* Assignment Table */}
       <div className="organizational__table-wrapper">
         <table className="organizational-table">
@@ -75,41 +81,47 @@ const BEMFUBUPage = () => {
                   Error: {error}
                 </td>
               </tr>
-            ) : mockData.length > 0 ? (
-              mockData.map((entity) => (
+            ) : assignments.length > 0 ? (
+              assignments.map((assignment) => (
                 <tr 
-                  key={entity.id} 
+                  key={assignment.id} 
                   className="organizational-table__row organizational-table__row--body"
                 >
                   <td className="organizational-table__cell">
                     <span 
                       className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.businessEntityCode)}
+                      onClick={() => handleCodeClick('be', assignment.beCode)}
                     >
-                      {entity.businessEntityCode}
+                      {assignment.beCode}
                     </span>
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.mfuCode)}
-                    >
-                      {entity.mfuCode}
-                    </span>
+                    {assignment.mfuCode ? (
+                      <span 
+                        className="organizational-table__code-link"
+                        onClick={() => handleCodeClick('mfu', assignment.mfuCode)}
+                      >
+                        {assignment.mfuCode}
+                      </span>
+                    ) : '-'}
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.businessUnitCode)}
-                    >
-                      {entity.businessUnitCode}
-                    </span>
+                    {assignment.buCode ? (
+                      <span 
+                        className="organizational-table__code-link"
+                        onClick={() => handleCodeClick('bu', assignment.buCode)}
+                      >
+                        {assignment.buCode}
+                      </span>
+                    ) : '-'}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="organizational__no-data-message">No assignments found</td>
+                <td colSpan="3" className="organizational__no-data-message">
+                  No assignments found
+                </td>
               </tr>
             )}
           </tbody>

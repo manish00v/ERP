@@ -28,15 +28,15 @@ class DeliveryLocationService {
     return prisma.deliveryLocation.findMany();
   }
 
-  static async getDeliveryLocationById(id) {
+  static async getDeliveryLocationById(deliveryLocationCode) {
     return prisma.deliveryLocation.findUnique({
-      where: { id: parseInt(id) }
+      where: { deliveryLocationCode: (deliveryLocationCode) }
     });
   }
 
-  static async updateDeliveryLocation(id, data) {
+  static async updateDeliveryLocation(deliveryLocationCode, data) {
     const existingLocation = await prisma.deliveryLocation.findUnique({
-      where: { id: parseInt(id) }
+      where: { deliveryLocationCode: (deliveryLocationCode) }
     });
 
     if (!existingLocation) {
@@ -53,14 +53,14 @@ class DeliveryLocationService {
     }
 
     return prisma.deliveryLocation.update({
-      where: { id: parseInt(id) },
+      where: { deliveryLocationCode: (deliveryLocationCode) },
       data
     });
   }
 
-  static async deleteDeliveryLocation(id) {
+  static async deleteDeliveryLocation(deliveryLocationCode) {
     return prisma.deliveryLocation.delete({
-      where: { id: parseInt(id) }
+      where: { deliveryLocationCode: (deliveryLocationCode) }
     });
   }
 }

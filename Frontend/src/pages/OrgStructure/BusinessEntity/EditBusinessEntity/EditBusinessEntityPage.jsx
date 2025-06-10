@@ -3,12 +3,15 @@ import { FormPageHeaderContext } from "../../../../contexts/FormPageHeaderContex
 import FormPageHeader from "../../../../components/Layout/FormPageHeader/FormPageHeader";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
 import { FaEdit, FaSave } from "react-icons/fa";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function EditBusinessEntity() {
   const { setGoBackUrl } = useContext(FormPageHeaderContext);
+  const { businessEntityCode } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    entityCode: "",
-    entityName: "",
+    businessEntityCode: "",
+    businessEntityName: "",
     street1: "",
     street2: "",
     city: "",
@@ -18,834 +21,87 @@ export default function EditBusinessEntity() {
     pinCode: "",
   });
 
-  
   const [errors, setErrors] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setGoBackUrl("/displayBusinessEntity");
-    // Simulate loading existing data
-    const mockData = {
-      entityCode: "ABC1",
-      entityName: "Sample Business",
-      street1: "123 Main St",
-      street2: "Apt 4B",
-      city: "Mumbai",
-      state: "Maharashtra",
-      region: "Western Asia",
-      country: "India",
-      pinCode: "400001",
-    };
-    setFormData(mockData);
-    setOriginalData(mockData);
-  }, [setGoBackUrl]);
+    fetchBusinessEntity();
+  }, [setGoBackUrl, businessEntityCode]);
 
-  const indianCities = [
-    "Mumbai",
-    "Delhi",
-    "Bengaluru",
-    "Hyderabad",
-    "Ahmedabad",
-    "Chennai",
-    "Kolkata",
-    "Surat",
-    "Pune",
-    "Jaipur",
-    "Lucknow",
-    "Kanpur",
-    "Nagpur",
-    "Indore",
-    "Thane",
-    "Bhopal",
-    "Visakhapatnam",
-    "Pimpri-Chinchwad",
-    "Patna",
-    "Vadodara",
-  ];
+  const fetchBusinessEntity = async () => {
+    try {
+      const response = await fetch(`http://localhost:3003/api/business-entities/${businessEntityCode}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch business entity');
+      }
+      const data = await response.json();
+      setFormData(data);
+      setOriginalData(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching business entity:', error);
+      alert('Error loading business entity data');
+      navigate('/displayBusinessEntity');
+    }
+  };
 
-  const otherCities = [
-    "Kabul",
-    "Kandahar",
-    "Herat",
-    "Mazar-i-Sharif",
-    "Tirana",
-    "Durres",
-    "Vlore",
-    "Shkoder",
-    "Algiers",
-    "Oran",
-    "Constantine",
-    "Annaba",
-    "Andorra la Vella",
-    "Escaldes-Engordany",
-    "Encamp",
-    "Luanda",
-    "Huambo",
-    "Lobito",
-    "Benguela",
-    "St. John's",
-    "All Saints",
-    "Liberta",
-    "Potter’s Village",
-    "Buenos Aires",
-    "Córdoba",
-    "Rosario",
-    "Mendoza",
-    "Yerevan",
-    "Gyumri",
-    "Vanadzor",
-    "Vagharshapat",
-    "Canberra",
-    "Sydney",
-    "Melbourne",
-    "Brisbane",
-    "Vienna",
-    "Graz",
-    "Linz",
-    "Salzburg",
-    "Baku",
-    "Ganja",
-    "Sumqayit",
-    "Lankaran",
-    "Nassau",
-    "Freeport",
-    "West End",
-    "Coopers Town",
-    "Manama",
-    "Riffa",
-    "Muharraq",
-    "Hamad Town",
-    "Dhaka",
-    "Chittagong",
-    "Khulna",
-    "Rajshahi",
-    "Bridgetown",
-    "Speightstown",
-    "Oistins",
-    "Holetown",
-    "Minsk",
-    "Gomel",
-    "Mogilev",
-    "Vitebsk",
-    "Brussels",
-    "Antwerp",
-    "Ghent",
-    "Charleroi",
-    "Belmopan",
-    "Belize City",
-    "San Ignacio",
-    "Orange Walk",
-    "Porto-Novo",
-    "Cotonou",
-    "Parakou",
-    "Djougou",
-    "Thimphu",
-    "Phuntsholing",
-    "Paro",
-    "Punakha",
-    "Sucre",
-    "La Paz",
-    "Santa Cruz",
-    "Cochabamba",
-    "Sarajevo",
-    "Banja Luka",
-    "Mostar",
-    "Tuzla",
-    "Gaborone",
-    "Francistown",
-    "Molepolole",
-    "Maun",
-    "Brasília",
-    "São Paulo",
-    "Rio de Janeiro",
-    "Salvador",
-    "Bandar Seri Begawan",
-    "Kuala Belait",
-    "Seria",
-    "Tutong",
-    "Sofia",
-    "Plovdiv",
-    "Varna",
-    "Burgas",
-    "Ouagadougou",
-    "Bobo-Dioulasso",
-    "Koudougou",
-    "Ouahigouya",
-    "Gitega",
-    "Bujumbura",
-    "Muyinga",
-    "Ngozi",
-    "Phnom Penh",
-    "Siem Reap",
-    "Battambang",
-    "Sihanoukville",
-    "Yaoundé",
-    "Douala",
-    "Bamenda",
-    "Bafoussam",
-    "Ottawa",
-    "Toronto",
-    "Montreal",
-    "Vancouver",
-    "Praia",
-    "Mindelo",
-    "Santa Maria",
-    "Assomada",
-    "Bangui",
-    "Bimbo",
-    "Berbérati",
-    "Carnot",
-    "N'Djamena",
-    "Moundou",
-    "Sarh",
-    "Abéché",
-    "Santiago",
-    "Valparaíso",
-    "Concepción",
-    "Antofagasta",
-    "Beijing",
-    "Shanghai",
-    "Guangzhou",
-    "Shenzhen",
-    "Bogotá",
-    "Medellín",
-    "Cali",
-    "Barranquilla",
-    "Moroni",
-    "Mutsamudu",
-    "Fomboni",
-    "Domoni",
-    "Brazzaville",
-    "Pointe-Noire",
-    "Dolisie",
-    "Nkayi",
-    "Kinshasa",
-    "Lubumbashi",
-    "Mbuji-Mayi",
-    "Kananga",
-    "San José",
-    "Limón",
-    "Alajuela",
-    "Heredia",
-    "Zagreb",
-    "Split",
-    "Rijeka",
-    "Osijek",
-    "Havana",
-    "Santiago de Cuba",
-    "Camagüey",
-    "Holguín",
-    "Nicosia",
-    "Limassol",
-    "Larnaca",
-    "Famagusta",
-    "Prague",
-    "Brno",
-    "Ostrava",
-    "Plzeň",
-    "Copenhagen",
-    "Aarhus",
-    "Odense",
-    "Aalborg",
-    "Djibouti",
-    "Ali Sabieh",
-    "Tadjoura",
-    "Obock",
-    "Roseau",
-    "Portsmouth",
-    "Marigot",
-    "Berekua",
-    "Santo Domingo",
-    "Santiago",
-    "La Romana",
-    "San Pedro de Macorís",
-    "Quito",
-    "Guayaquil",
-    "Cuenca",
-    "Santo Domingo",
-    "Cairo",
-    "Alexandria",
-    "Giza",
-    "Shubra El-Kheima",
-    "San Salvador",
-    "Santa Ana",
-    "Soyapango",
-    "San Miguel",
-    "Malabo",
-    "Bata",
-    "Ebebiyín",
-    "Aconibe",
-    "Asmara",
-    "Keren",
-    "Massawa",
-    "Assab",
-    "Tallinn",
-    "Tartu",
-    "Narva",
-    "Pärnu",
-    "Mbabane",
-    "Manzini",
-    "Lobamba",
-    "Siteki",
-    "Addis Ababa",
-    "Dire Dawa",
-    "Mek'ele",
-    "Nazret",
-    "Suva",
-    "Lautoka",
-    "Nadi",
-    "Labasa",
-    "Helsinki",
-    "Espoo",
-    "Tampere",
-    "Vantaa",
-    "Paris",
-    "Marseille",
-    "Lyon",
-    "Toulouse",
-    "Libreville",
-    "Port-Gentil",
-    "Franceville",
-    "Oyem",
-    "Banjul",
-    "Serekunda",
-    "Brikama",
-    "Bakau",
-    "Tbilisi",
-    "Kutaisi",
-    "Batumi",
-    "Rustavi",
-    "Berlin",
-    "Hamburg",
-    "Munich",
-    "Cologne",
-    "Accra",
-    "Kumasi",
-    "Tamale",
-    "Takoradi",
-    "Athens",
-    "Thessaloniki",
-    "Patras",
-    "Heraklion",
-    "St. George’s",
-    "Gouyave",
-    "Grenville",
-    "Victoria",
-    "Guatemala City",
-    "Mixco",
-    "Villa Nueva",
-    "Quetzaltenango",
-    "Conakry",
-    "Kankan",
-    "Labé",
-    "Nzérékoré",
-    "Bissau",
-    "Bafatá",
-    "Gabú",
-    "Bissorã",
-    "Georgetown",
-    "Linden",
-    "New Amsterdam",
-    "Bartica",
-    "Port-au-Prince",
-    "Cap-Haïtien",
-    "Gonaïves",
-    "Les Cayes",
-    "Tegucigalpa",
-    "San Pedro Sula",
-    "La Ceiba",
-    "Choloma",
-    "Budapest",
-    "Debrecen",
-    "Szeged",
-    "Miskolc",
-    "Reykjavik",
-    "Kópavogur",
-    "Hafnarfjörður",
-    "Akureyri",
-    "Jakarta",
-    "Surabaya",
-    "Bandung",
-    "Medan",
-    "Tehran",
-    "Mashhad",
-    "Isfahan",
-    "Karaj",
-    "Baghdad",
-    "Basra",
-    "Mosul",
-    "Erbil",
-    "Dublin",
-    "Cork",
-    "Limerick",
-    "Galway",
-    "Jerusalem",
-    "Tel Aviv",
-    "Haifa",
-    "Beersheba",
-    "Rome",
-    "Milan",
-    "Naples",
-    "Turin",
-    "Yamoussoukro",
-    "Abidjan",
-    "Bouaké",
-    "Daloa",
-    "Kingston",
-    "Spanish Town",
-    "Montego Bay",
-    "May Pen",
-    "Tokyo",
-    "Yokohama",
-    "Osaka",
-    "Nagoya",
-    "Amman",
-    "Zarqa",
-    "Irbid",
-    "Russeifa",
-    "Astana",
-    "Almaty",
-    "Shymkent",
-    "Karaganda",
-    "Nairobi",
-    "Mombasa",
-    "Kisumu",
-    "Nakuru",
-    "Tarawa",
-    "Betio",
-    "Bairiki",
-    "Bonriki",
-    "Pyongyang",
-    "Hamhung",
-    "Chongjin",
-    "Nampo",
-    "Seoul",
-    "Busan",
-    "Incheon",
-    "Daegu",
-    "Pristina",
-    "Prizren",
-    "Peja",
-    "Gjakova",
-    "Kuwait City",
-    "Al Ahmadi",
-    "Hawalli",
-    "Salmiya",
-    "Bishkek",
-    "Osh",
-    "Jalal-Abad",
-    "Karakol",
-    "Vientiane",
-    "Pakse",
-    "Savannakhet",
-    "Luang Prabang",
-    "Riga",
-    "Daugavpils",
-    "Liepaja",
-    "Jelgava",
-    "Beirut",
-    "Tripoli",
-    "Sidon",
-    "Tyre",
-    "Maseru",
-    "Teyateyaneng",
-    "Mafeteng",
-    "Hlotse",
-    "Monrovia",
-    "Gbarnga",
-    "Kakata",
-    "Buchanan",
-    "Tripoli",
-    "Benghazi",
-    "Misrata",
-    "Sabha",
-    "Vaduz",
-    "Schaan",
-    "Balzers",
-    "Triesen",
-    "Vilnius",
-    "Kaunas",
-    "Klaipeda",
-    "Šiauliai",
-    "Luxembourg City",
-    "Esch-sur-Alzette",
-    "Differdange",
-    "Dudelange",
-    "Antananarivo",
-    "Toamasina",
-    "Antsirabe",
-    "Mahajanga",
-    "Lilongwe",
-    "Blantyre",
-    "Mzuzu",
-    "Zomba",
-    "Kuala Lumpur",
-    "George Town",
-    "Johor Bahru",
-    "Ipoh",
-    "Malé",
-    "Addu City",
-    "Fuvahmulah",
-    "Kulhudhuffushi",
-    "Bamako",
-    "Sikasso",
-    "Mopti",
-    "Ségou",
-    "Valletta",
-    "Birkirkara",
-    "Qormi",
-    "Mosta",
-    "Majuro",
-    "Ebeye",
-    "Arno",
-    "Jaluit",
-    "Nouakchott",
-    "Nouadhibou",
-    "Rosso",
-    "Kaédi",
-    "Port Louis",
-    "Beau Bassin-Rose Hill",
-    "Vacoas-Phoenix",
-    "Curepipe",
-    "Mexico City",
-    "Guadalajara",
-    "Monterrey",
-    "Puebla",
-    "Palikir",
-    "Weno",
-    "Kolonia",
-    "Tofol",
-    "Chișinău",
-    "Tiraspol",
-    "Bălți",
-    "Bender",
-    "Monaco",
-    "Monte Carlo",
-    "La Condamine",
-    "Fontvieille",
-    "Ulaanbaatar",
-    "Erdenet",
-    "Darkhan",
-    "Choibalsan",
-    "Podgorica",
-    "Nikšić",
-    "Pljevlja",
-    "Bijelo Polje",
-    "Rabat",
-    "Casablanca",
-    "Marrakech",
-    "Fes",
-    "Maputo",
-    "Beira",
-    "Nampula",
-    "Quelimane",
-    "Naypyidaw",
-    "Yangon",
-    "Mandalay",
-    "Mawlamyine",
-    "Windhoek",
-    "Walvis Bay",
-    "Swakopmund",
-    "Rundu",
-    "Yaren (de facto)",
-    "Denigomodu",
-    "Aiwo",
-    "Buada",
-    "Kathmandu",
-    "Pokhara",
-    "Lalitpur",
-    "Biratnagar",
-    "Amsterdam",
-    "Rotterdam",
-    "The Hague",
-    "Utrecht",
-    "Wellington",
-    "Auckland",
-    "Christchurch",
-    "Hamilton",
-    "Managua",
-    "León",
-    "Masaya",
-    "Chinandega",
-    "Niamey",
-    "Zinder",
-    "Maradi",
-    "Tahoua",
-    "Abuja",
-    "Lagos",
-    "Kano",
-    "Ibadan",
-    "Skopje",
-    "Bitola",
-    "Kumanovo",
-    "Prilep",
-    "Oslo",
-    "Bergen",
-    "Trondheim",
-    "Stavanger",
-    "Muscat",
-    "Salalah",
-    "Sohar",
-    "Nizwa",
-    "Islamabad",
-    "Karachi",
-    "Lahore",
-    "Faisalabad",
-    "Ngerulmud",
-    "Koror",
-    "Melekeok",
-    "Airai",
-    "Panama City",
-    "Colón",
-    "David",
-    "La Chorrera",
-    "Port Moresby",
-    "Lae",
-    "Mount Hagen",
-    "Madang",
-    "Asunción",
-    "Ciudad del Este",
-    "San Lorenzo",
-    "Luque",
-    "Lima",
-    "Arequipa",
-    "Trujillo",
-    "Chiclayo",
-    "Manila",
-    "Quezon City",
-    "Cebu City",
-    "Davao City",
-    "Warsaw",
-    "Kraków",
-    "Łódź",
-    "Wrocław",
-    "Lisbon",
-    "Porto",
-    "Amadora",
-    "Braga",
-    "Doha",
-    "Al Rayyan",
-    "Al Wakrah",
-    "Al Khor",
-    "Bucharest",
-    "Cluj-Napoca",
-    "Timișoara",
-    "Iași",
-    "Moscow",
-    "Saint Petersburg",
-    "Novosibirsk",
-    "Yekaterinburg",
-    "Kigali",
-    "Butare",
-    "Gitarama",
-    "Ruhengeri",
-    "Basseterre",
-    "Charlestown",
-    "Castries",
-    "Vieux Fort",
-    "Gros Islet",
-    "Soufrière",
-    "Kingstown",
-    "Georgetown",
-    "Barrouallie",
-    "Chateaubelair",
-    "Apia",
-    "Salelologa",
-    "Faleasiu",
-    "Fasito'o Uta",
-    "San Marino",
-    "Serravalle",
-    "Borgo Maggiore",
-    "Domagnano",
-    "São Tomé",
-    "Santo Amaro",
-    "Neves",
-    "Trindade",
-    "Riyadh",
-    "Jeddah",
-    "Mecca",
-    "Medina",
-    "Dakar",
-    "Touba",
-    "Thiès",
-    "Kaolack",
-    "Belgrade",
-    "Novi Sad",
-    "Niš",
-    "Kragujevac",
-    "Victoria",
-    "Anse Boileau",
-    "Bel Ombre",
-    "Takamaka",
-    "Freetown",
-    "Bo",
-    "Kenema",
-    "Makeni",
-    "Singapore",
-    "Bratislava",
-    "Košice",
-    "Prešov",
-    "Žilina",
-    "Ljubljana",
-    "Maribor",
-    "Celje",
-    "Kranj",
-    "Honiara",
-    "Auki",
-    "Gizo",
-    "Buala",
-    "Mogadishu",
-    "Hargeisa",
-    "Bosaso",
-    "Kismayo",
-    "Pretoria",
-    "Johannesburg",
-    "Cape Town",
-    "Durban",
-    "Juba",
-    "Malakal",
-    "Wau",
-    "Aweil",
-    "Madrid",
-    "Barcelona",
-    "Valencia",
-    "Seville",
-    "Sri Jayawardenepura Kotte",
-    "Colombo",
-    "Kandy",
-    "Galle",
-    "Khartoum",
-    "Omdurman",
-    "Nyala",
-    "Port Sudan",
-    "Paramaribo",
-    "Lelydorp",
-    "Nieuw Nickerie",
-    "Moengo",
-    "Stockholm",
-    "Gothenburg",
-    "Malmö",
-    "Uppsala",
-    "Bern",
-    "Zurich",
-    "Geneva",
-    "Basel",
-    "Damascus",
-    "Aleppo",
-    "Homs",
-    "Hama",
-    "Taipei",
-    "Kaohsiung",
-    "Taichung",
-    "Tainan",
-    "Dushanbe",
-    "Khujand",
-    "Bokhtar",
-    "Kulob",
-    "Dodoma",
-    "Dar es Salaam",
-    "Mwanza",
-    "Arusha",
-    "Bangkok",
-    "Chiang Mai",
-    "Pattaya",
-    "Nakhon Ratchasima",
-    "Dili",
-    "Baucau",
-    "Maliana",
-    "Suai",
-    "Lomé",
-    "Sokodé",
-    "Kara",
-    "Kpalimé",
-    "Nukuʻalofa",
-    "Neiafu",
-    "Haveluloto",
-    "Vaini",
-    "Port of Spain",
-    "San Fernando",
-    "Chaguanas",
-    "Arima",
-    "Tunis",
-    "Sfax",
-    "Sousse",
-    "Kairouan",
-    "Ankara",
-    "Istanbul",
-    "Izmir",
-    "Bursa",
-    "Ashgabat",
-    "Turkmenabat",
-    "Daşoguz",
-    "Mary",
-    "Funafuti",
-    "Vaiaku",
-    "Asau",
-    "Motufoua",
-    "Kampala",
-    "Gulu",
-    "Lira",
-    "Mbarara",
-    "Kyiv",
-    "Kharkiv",
-    "Odessa",
-    "Dnipro",
-    "Abu Dhabi",
-    "Dubai",
-    "Sharjah",
-    "Al Ain",
-    "London",
-    "Birmingham",
-    "Manchester",
-    "Glasgow",
-    "Washington, D.C.",
-    "New York City",
-    "Los Angeles",
-    "Chicago",
-    "Montevideo",
-    "Salto",
-    "Paysandú",
-    "Las Piedras",
-    "Tashkent",
-    "Samarkand",
-    "Bukhara",
-    "Namangan",
-    "Port Vila",
-    "Luganville",
-    "Norsup",
-    "Isangel",
-    "Vatican City",
-    "Caracas",
-    "Maracaibo",
-    "Valencia",
-    "Barquisimeto",
-    "Hanoi",
-    "Ho Chi Minh City",
-    "Da Nang",
-    "Hai Phong",
-    "Sana'a",
-    "Aden",
-    "Taiz",
-    "Al Hudaydah",
-    "Lusaka",
-    "Ndola",
-    "Kitwe",
-    "Livingstone",
-    "Harare",
-    "Bulawayo",
-    "Chitungwiza",
-    "Mutare",
-  ];
+      const indianCities = [
+        "Mumbai",
+        "Delhi",
+        "Bengaluru",
+        "Hyderabad",
+        "Ahmedabad",
+        "Chennai",
+        "Kolkata",
+        "Surat",
+        "Pune",
+        "Jaipur",
+        "Lucknow",
+        "Kanpur",
+        "Nagpur",
+        "Indore",
+        "Thane",
+        "Bhopal",
+        "Visakhapatnam",
+        "Pimpri-Chinchwad",
+        "Patna",
+        "Vadodara",
+      ];
+    
+    
+      const otherCities = [
+        "Kabul", "Kandahar", "Herat", "Mazar-i-Sharif", "Tirana", "Durres", "Vlore", "Shkoder", "Algiers", "Oran", "Constantine", "Annaba", "Andorra la Vella", "Escaldes-Engordany", "Encamp", "Luanda", "Huambo", "Lobito", "Benguela", "St. John's", "All Saints", "Liberta", "Potter’s Village", "Buenos Aires", "Córdoba", "Rosario", "Mendoza", "Yerevan", "Gyumri", "Vanadzor", "Vagharshapat", "Canberra", 
+        "Sydney", "Melbourne", "Brisbane", "Vienna", "Graz", "Linz", "Salzburg", "Baku", "Ganja", "Sumqayit", "Lankaran", "Nassau", "Freeport", "West End", "Coopers Town", "Manama", "Riffa", "Muharraq", "Hamad Town", "Dhaka", "Chittagong", "Khulna", "Rajshahi", "Bridgetown", "Speightstown", "Oistins", "Holetown", "Minsk", "Gomel", "Mogilev", "Vitebsk", "Brussels", "Antwerp", "Ghent", "Charleroi", 
+        "Belmopan", "Belize City", "San Ignacio", "Orange Walk", "Porto-Novo", "Cotonou", "Parakou", "Djougou", "Thimphu", "Phuntsholing", "Paro", "Punakha", "Sucre", "La Paz", "Santa Cruz", "Cochabamba", "Sarajevo", "Banja Luka", "Mostar", "Tuzla", "Gaborone", "Francistown", "Molepolole", "Maun", "Brasília", "São Paulo", "Rio de Janeiro", "Salvador", "Bandar Seri Begawan", "Kuala Belait", "Seria", 
+        "Tutong", "Sofia", "Plovdiv", "Varna", "Burgas", "Ouagadougou", "Bobo-Dioulasso", "Koudougou", "Ouahigouya", "Gitega", "Bujumbura", "Muyinga", "Ngozi", "Phnom Penh", "Siem Reap", "Battambang", "Sihanoukville", "Yaoundé", "Douala", "Bamenda", "Bafoussam", "Ottawa", "Toronto", "Montreal", "Vancouver", "Praia", "Mindelo", "Santa Maria", "Assomada", "Bangui", "Bimbo", "Berbérati", "Carnot", 
+        "N'Djamena", "Moundou", "Sarh", "Abéché", "Santiago", "Valparaíso", "Concepción", "Antofagasta", "Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Bogotá", "Medellín", "Cali", "Barranquilla", "Moroni", "Mutsamudu", "Fomboni", "Domoni", "Brazzaville", "Pointe-Noire", "Dolisie", "Nkayi", "Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kananga", "San José", "Limón", "Alajuela", "Heredia", "Zagreb", 
+        "Split", "Rijeka", "Osijek", "Havana", "Santiago de Cuba", "Camagüey", "Holguín", "Nicosia", "Limassol", "Larnaca", "Famagusta", "Prague", "Brno", "Ostrava", "Plzeň", "Copenhagen", "Aarhus", "Odense", "Aalborg", "Djibouti", "Ali Sabieh", "Tadjoura", "Obock", "Roseau", "Portsmouth", "Marigot", "Berekua", "Santo Domingo", "Santiago", "La Romana", "San Pedro de Macorís", "Quito", "Guayaquil", 
+        "Cuenca", "Santo Domingo", "Cairo", "Alexandria", "Giza", "Shubra El-Kheima", "San Salvador", "Santa Ana", "Soyapango", "San Miguel", "Malabo", "Bata", "Ebebiyín", "Aconibe", "Asmara", "Keren", "Massawa", "Assab", "Tallinn", "Tartu", "Narva", "Pärnu", "Mbabane", "Manzini", "Lobamba", "Siteki", "Addis Ababa", "Dire Dawa", "Mek'ele", "Nazret", "Suva", "Lautoka", "Nadi", "Labasa", "Helsinki", 
+        "Espoo", "Tampere", "Vantaa", "Paris", "Marseille", "Lyon", "Toulouse", "Libreville", "Port-Gentil", "Franceville", "Oyem", "Banjul", "Serekunda", "Brikama", "Bakau", "Tbilisi", "Kutaisi", "Batumi", "Rustavi", "Berlin", "Hamburg", "Munich", "Cologne", "Accra", "Kumasi", "Tamale", "Takoradi", "Athens", "Thessaloniki", "Patras", "Heraklion", "St. George’s", "Gouyave", "Grenville", "Victoria", 
+        "Guatemala City", "Mixco", "Villa Nueva", "Quetzaltenango", "Conakry", "Kankan", "Labé", "Nzérékoré", "Bissau", "Bafatá", "Gabú", "Bissorã", "Georgetown", "Linden", "New Amsterdam", "Bartica", "Port-au-Prince", "Cap-Haïtien", "Gonaïves", "Les Cayes", "Tegucigalpa", "San Pedro Sula", "La Ceiba", "Choloma", "Budapest", "Debrecen", "Szeged", "Miskolc", "Reykjavik", "Kópavogur", "Hafnarfjörður", 
+        "Akureyri", "Jakarta", "Surabaya", "Bandung", "Medan", "Tehran", "Mashhad", "Isfahan", "Karaj", "Baghdad", "Basra", "Mosul", "Erbil", "Dublin", "Cork", "Limerick", "Galway", "Jerusalem", "Tel Aviv", "Haifa", "Beersheba", "Rome", "Milan", "Naples", "Turin", "Yamoussoukro", "Abidjan", "Bouaké", "Daloa", "Kingston", "Spanish Town", "Montego Bay", "May Pen", "Tokyo", "Yokohama", "Osaka", "Nagoya", 
+        "Amman", "Zarqa", "Irbid", "Russeifa", "Astana", "Almaty", "Shymkent", "Karaganda", "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Tarawa", "Betio", "Bairiki", "Bonriki", "Pyongyang", "Hamhung", "Chongjin", "Nampo", "Seoul", "Busan", "Incheon", "Daegu", "Pristina", "Prizren", "Peja", "Gjakova", "Kuwait City", "Al Ahmadi", "Hawalli", "Salmiya", "Bishkek", "Osh", "Jalal-Abad", "Karakol", "Vientiane", 
+        "Pakse", "Savannakhet", "Luang Prabang", "Riga", "Daugavpils", "Liepaja", "Jelgava", "Beirut", "Tripoli", "Sidon", "Tyre", "Maseru", "Teyateyaneng", "Mafeteng", "Hlotse", "Monrovia", "Gbarnga", "Kakata", "Buchanan", "Tripoli", "Benghazi", "Misrata", "Sabha", "Vaduz", "Schaan", "Balzers", "Triesen", "Vilnius", "Kaunas", "Klaipeda", "Šiauliai", "Luxembourg City", "Esch-sur-Alzette", "Differdange", 
+        "Dudelange", "Antananarivo", "Toamasina", "Antsirabe", "Mahajanga", "Lilongwe", "Blantyre", "Mzuzu", "Zomba", "Kuala Lumpur", "George Town", "Johor Bahru", "Ipoh", "Malé", "Addu City", "Fuvahmulah", "Kulhudhuffushi", "Bamako", "Sikasso", "Mopti", "Ségou", "Valletta", "Birkirkara", "Qormi", "Mosta", "Majuro", "Ebeye", "Arno", "Jaluit", "Nouakchott", "Nouadhibou", "Rosso", "Kaédi", "Port Louis", 
+        "Beau Bassin-Rose Hill", "Vacoas-Phoenix", "Curepipe", "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Palikir", "Weno", "Kolonia", "Tofol", "Chișinău", "Tiraspol", "Bălți", "Bender", "Monaco", "Monte Carlo", "La Condamine", "Fontvieille", "Ulaanbaatar", "Erdenet", "Darkhan", "Choibalsan", "Podgorica", "Nikšić", "Pljevlja", "Bijelo Polje", "Rabat", "Casablanca", "Marrakech", "Fes", "Maputo", 
+        "Beira", "Nampula", "Quelimane", "Naypyidaw", "Yangon", "Mandalay", "Mawlamyine", "Windhoek", "Walvis Bay", "Swakopmund", "Rundu", "Yaren (de facto)", "Denigomodu", "Aiwo", "Buada", "Kathmandu", "Pokhara", "Lalitpur", "Biratnagar", "Amsterdam", "Rotterdam", "The Hague", "Utrecht", "Wellington", "Auckland", "Christchurch", "Hamilton", "Managua", "León", "Masaya", "Chinandega", "Niamey", "Zinder", 
+        "Maradi", "Tahoua", "Abuja", "Lagos", "Kano", "Ibadan", "Skopje", "Bitola", "Kumanovo", "Prilep", "Oslo", "Bergen", "Trondheim", "Stavanger", "Muscat", "Salalah", "Sohar", "Nizwa", "Islamabad", "Karachi", "Lahore", "Faisalabad", "Ngerulmud", "Koror", "Melekeok", "Airai", "Panama City", "Colón", "David", "La Chorrera", "Port Moresby", "Lae", "Mount Hagen", "Madang", "Asunción", "Ciudad del Este", 
+        "San Lorenzo", "Luque", "Lima", "Arequipa", "Trujillo", "Chiclayo", "Manila", "Quezon City", "Cebu City", "Davao City", "Warsaw", "Kraków", "Łódź", "Wrocław", "Lisbon", "Porto", "Amadora", "Braga", "Doha", "Al Rayyan", "Al Wakrah", "Al Khor", "Bucharest", "Cluj-Napoca", "Timișoara", "Iași", "Moscow", "Saint Petersburg", "Novosibirsk", "Yekaterinburg", "Kigali", "Butare", "Gitarama", "Ruhengeri",
+         "Basseterre", "Charlestown", "Castries", "Vieux Fort", "Gros Islet", "Soufrière", "Kingstown", "Georgetown", "Barrouallie", "Chateaubelair", "Apia", "Salelologa", "Faleasiu", "Fasito'o Uta", "San Marino", "Serravalle", "Borgo Maggiore", "Domagnano", "São Tomé", "Santo Amaro", "Neves", "Trindade", "Riyadh", "Jeddah", "Mecca", "Medina", "Dakar", "Touba", "Thiès", "Kaolack", "Belgrade", "Novi Sad", 
+         "Niš", "Kragujevac", "Victoria", "Anse Boileau", "Bel Ombre", "Takamaka", "Freetown", "Bo", "Kenema", "Makeni", "Singapore", "Bratislava", "Košice", "Prešov", "Žilina", "Ljubljana", "Maribor", "Celje", "Kranj", "Honiara", "Auki", "Gizo", "Buala", "Mogadishu", "Hargeisa", "Bosaso", "Kismayo", "Pretoria", "Johannesburg", "Cape Town", "Durban", "Juba", "Malakal", "Wau", "Aweil", "Madrid", "Barcelona", 
+         "Valencia", "Seville", "Sri Jayawardenepura Kotte", "Colombo", "Kandy", "Galle", "Khartoum", "Omdurman", "Nyala", "Port Sudan", "Paramaribo", "Lelydorp", "Nieuw Nickerie", "Moengo", "Stockholm", "Gothenburg", "Malmö", "Uppsala", "Bern", "Zurich", "Geneva", "Basel", "Damascus", "Aleppo", "Homs", "Hama", "Taipei", "Kaohsiung", "Taichung", "Tainan", "Dushanbe", "Khujand", "Bokhtar", "Kulob", "Dodoma", 
+         "Dar es Salaam", "Mwanza", "Arusha", "Bangkok", "Chiang Mai", "Pattaya", "Nakhon Ratchasima", "Dili", "Baucau", "Maliana", "Suai", "Lomé", "Sokodé", "Kara", "Kpalimé", "Nukuʻalofa", "Neiafu", "Haveluloto", "Vaini", "Port of Spain", "San Fernando", "Chaguanas", "Arima", "Tunis", "Sfax", "Sousse", "Kairouan", "Ankara", "Istanbul", "Izmir", "Bursa", "Ashgabat", "Turkmenabat", "Daşoguz", "Mary", "Funafuti", 
+         "Vaiaku", "Asau", "Motufoua", "Kampala", "Gulu", "Lira", "Mbarara", "Kyiv", "Kharkiv", "Odessa", "Dnipro", "Abu Dhabi", "Dubai", "Sharjah", "Al Ain", "London", "Birmingham", "Manchester", "Glasgow", "Washington, D.C.", "New York City", "Los Angeles", "Chicago", "Montevideo", "Salto", "Paysandú", "Las Piedras", "Tashkent", "Samarkand", "Bukhara", "Namangan", "Port Vila", "Luganville", "Norsup", "Isangel", 
+         "Vatican City", "Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Hanoi", "Ho Chi Minh City", "Da Nang", "Hai Phong", "Sana'a", "Aden", "Taiz", "Al Hudaydah", "Lusaka", "Ndola", "Kitwe", "Livingstone", "Harare", "Bulawayo", "Chitungwiza", "Mutare"
+    
+      ];
   
   const validateField = (name, value) => {
     switch (name) {
-      case "entityCode":
-        if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
-          return "Business Entity Code must be exactly 4 alphanumeric characters";
-        }
-        break;
-      case "entityName":
+      case "businessEntityName":
         if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
           return "Business Entity Name must be alphanumeric and up to 30 characters";
         }
@@ -884,19 +140,17 @@ export default function EditBusinessEntity() {
     
     const { name, value } = e.target;
 
-    // Validate the field
     const error = validateField(name, value);
     setErrors((prev) => ({
       ...prev,
       [name]: error,
     }));
 
-    // If country changes, reset city
     if (name === "country") {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
-        city: "" // Reset city when country changes
+        city: ""
       }));
     } else {
       setFormData((prev) => ({
@@ -906,35 +160,70 @@ export default function EditBusinessEntity() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    let formValid = true;
-    const newErrors = {};
+  let formValid = true;
+  const newErrors = {};
 
-    Object.keys(formData).forEach((key) => {
-      const error = validateField(key, formData[key]);
-      if (error) {
-        newErrors[key] = error;
-        formValid = false;
-      }
+  Object.keys(formData).forEach((key) => {
+    if (key === "businessEntityCode") return;
+    const error = validateField(key, formData[key]);
+    if (error) {
+      newErrors[key] = error;
+      formValid = false;
+    }
+  });
+
+  setErrors(newErrors);
+
+  if (!formValid) {
+    return;
+  }
+
+  try {
+    // Create a payload with only the allowed fields
+    const updatePayload = {
+      businessEntityName: formData.businessEntityName,
+      street1: formData.street1,
+      street2: formData.street2,
+      city: formData.city,
+      state: formData.state,
+      region: formData.region,
+      country: formData.country,
+      pinCode: formData.pinCode
+    };
+
+    const response = await fetch(`http://localhost:3003/api/business-entities/${businessEntityCode}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatePayload), // Send only allowed fields
     });
 
-    setErrors(newErrors);
-
-    if (formValid) {
-      console.log("Form data valid, ready to submit:", formData);
-      alert("Business Entity updated successfully!");
-      setOriginalData(formData);
-      setIsEditing(false);
-    } else {
-      alert("Please fix the errors in the form before submitting.");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update business entity');
     }
-  };
+
+    const updatedData = await response.json();
+    setOriginalData(updatedData);
+    setIsEditing(false);
+    alert("Business Entity updated successfully!");
+  } catch (error) {
+    console.error('Error updating business entity:', error);
+    alert(error.message || "An error occurred while updating the business entity");
+  }
+};
 
   const handleEdit = () => {
     setIsEditing(true);
   };
+
+  if (isLoading) {
+    return <div className="container">Loading...</div>;
+  }
 
   return (
     <>
@@ -960,58 +249,47 @@ export default function EditBusinessEntity() {
         </div>
         
         <form id="businessEntityForm" onSubmit={handleSubmit}>
-          {/* Business Entity Details */}
           <div className="header-box">
             <h2>Business Entity Details</h2>
             <div className="data-container">
               <div className="data">
-                <label htmlFor="entityCode">Business Entity Code*</label>
+                <label htmlFor="businessEntityCode">Business Entity Code*</label>
                 <span className="info-icon-tooltip">
                   <i className="fas fa-info-circle" />
                   <span className="tooltip-text">
-                    1- Business Entity Code must be exactly 4 digits. <br />
-                    2- Business Entity Code must be unique. <br />
-                    3- Business Entity Code must not contain any special characters.  <br />
-                    4- Business Entity Code must not contain any spaces. <br /> 
-                    5- Business Entity Code once created then it can be not delete. <br />
+                    Business Entity Code cannot be modified after creation
                   </span>
                 </span>
                 <input
                   type="text"
-                  id="entityCode"
-                  name="entityCode"
-                  value={formData.entityCode}
-                  onChange={handleChange}
-                  maxLength={4}
-                  required
-                  readOnly={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
+                  id="businessEntityCode"
+                  name="businessEntityCode"
+                  value={formData.businessEntityCode}
+                  readOnly
+                  className="read-only"
                 />
-                {errors.entityCode && (
-                  <span className="error">{errors.entityCode}</span>
-                )}
               </div>
               <div className="data">
-                <label htmlFor="entityName">Business Entity Name*</label>
+                <label htmlFor="businessEntityName">Business Entity Name*</label>
                 <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    Business Entity Name must be alphanumeric and up to 30 characters.
-                  </span>
+                <i className="fas fa-info-circle" />
+                <span className="tooltip-text">
+                  Business Entity Must be alphanumeric and up to 30 characters
                 </span>
+              </span>
                 <input
                   type="text"
-                  id="entityName"
-                  name="entityName"
-                  value={formData.entityName}
+                  id="businessEntityName"
+                  name="businessEntityName"
+                  value={formData.businessEntityName}
                   onChange={handleChange}
                   maxLength={30}
                   required
                   readOnly={!isEditing}
                   className={!isEditing ? "read-only" : ""}
                 />
-                {errors.entityName && (
-                  <span className="error">{errors.entityName}</span>
+                {errors.businessEntityName && (
+                  <div className="error-message">{errors.businessEntityName}</div>
                 )}
               </div>
             </div>
@@ -1021,7 +299,7 @@ export default function EditBusinessEntity() {
             <h2>Address Details</h2>
             <div className="data-container">
               <div className="data">
-                <label htmlFor="street1">Street 1</label>
+                <label htmlFor="street1">Street 1*</label>
                 <div className="input-container">
                   <textarea
                     type="text"
@@ -1030,12 +308,12 @@ export default function EditBusinessEntity() {
                     value={formData.street1}
                     onChange={handleChange}
                     maxLength={50}
-                    placeholder="Street 1"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
+                    required
                     readOnly={!isEditing}
+                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
                   />
                   {errors.street1 && (
-                    <span className="error">{errors.street1}</span>
+                    <div className="error-message">{errors.street1}</div>
                   )}
                 </div>
               </div>
@@ -1049,12 +327,11 @@ export default function EditBusinessEntity() {
                     value={formData.street2}
                     onChange={handleChange}
                     maxLength={50}
-                    placeholder="Street 2"
-                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
                     readOnly={!isEditing}
+                    className={`resizable-input ${!isEditing ? "read-only" : ""}`}
                   />
                   {errors.street2 && (
-                    <span className="error">{errors.street2}</span>
+                    <div className="error-message">{errors.street2}</div>
                   )}
                 </div>
               </div>
@@ -1068,14 +345,13 @@ export default function EditBusinessEntity() {
                   onChange={handleChange}
                   maxLength={30}
                   required
-                  placeholder="State"
                   readOnly={!isEditing}
                   className={!isEditing ? "read-only" : ""}
                 />
-                {errors.state && <span className="error">{errors.state}</span>}
+                {errors.state && <div className="error-message">{errors.state}</div>}
               </div>
 
-              <div className="data">
+                  <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -1083,9 +359,6 @@ export default function EditBusinessEntity() {
                   value={formData.region}
                   onChange={handleChange}
                   required
-                  placeholder="Region"
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a region</option>
                   {[
@@ -1127,8 +400,6 @@ export default function EditBusinessEntity() {
                   value={formData.country}
                   onChange={handleChange}
                   required
-                  disabled={!isEditing}
-                  className={!isEditing ? "read-only" : ""}
                 >
                   <option value="">Select a country</option>
                   {[
@@ -1352,17 +623,13 @@ export default function EditBusinessEntity() {
                   <option value="">Select a city</option>
                   {formData.country === "India"
                     ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
+                        <option key={city} value={city}>{city}</option>
                       ))
                     : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
+                        <option key={city} value={city}>{city}</option>
                       ))}
                 </select>
-                {errors.city && <span className="error">{errors.city}</span>}
+                {errors.city && <div className="error-message">{errors.city}</div>}
               </div>
 
               <div className="data">
@@ -1375,12 +642,11 @@ export default function EditBusinessEntity() {
                   onChange={handleChange}
                   maxLength={6}
                   required
-                  placeholder="Pin Code"
                   readOnly={!isEditing}
                   className={!isEditing ? "read-only" : ""}
                 />
                 {errors.pinCode && (
-                  <span className="error">{errors.pinCode}</span>
+                  <div className="error-message">{errors.pinCode}</div>
                 )}
               </div>
             </div>

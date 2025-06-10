@@ -1,20 +1,24 @@
 import { useState } from "react";
 import "../../../../components/Layout/Styles/BoxFormStyles.css";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateBusinessUnitForm() {
-    const [formData, setFormData] = useState({
-        businessCode: "",
-        businessName: "",
-        street1: "",
-        street2: "",
-        city: "",
-        state: "",
-        region: "",
-        country: "",
-        pinCode: "",
-    });
-    const [errors, setErrors] = useState({});
-    const indianCities = [
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    businessUnitCode: "",
+    businessUnitDesc: "",
+    street1: "",
+    street2: "",
+    city: "",
+    state: "",
+    region: "",
+    country: "",
+    pinCode: "",
+  });
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+       const indianCities = [
         "Mumbai",
         "Delhi",
         "Bengaluru",
@@ -64,219 +68,251 @@ export default function CreateBusinessUnitForm() {
          "Vatican City", "Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Hanoi", "Ho Chi Minh City", "Da Nang", "Hai Phong", "Sana'a", "Aden", "Taiz", "Al Hudaydah", "Lusaka", "Ndola", "Kitwe", "Livingstone", "Harare", "Bulawayo", "Chitungwiza", "Mutare"
     
       ];
-
-    const validateField = (name, value) => {
-        switch (name) {
-            case 'businessCode':
-                if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
-                    return 'Business Unit Code must be exactly 4 alphanumeric characters';
-                }
-                break;
-            case 'businessName':
-                if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
-                    return 'Busines Unit Name must be alphanumeric and up to 30 characters';
-                }
-                break;
-            case 'street1':
-            case 'street2':
-                if (value.length > 50) {
-                    return 'Street address must be up to 50 characters';
-                }
-                break;
-            case 'city':
-            case 'state':
-            case 'country':
-                if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
-                    return 'Must contain only letters and up to 30 characters';
-                }
-                break;
-            case 'region':
-                if (value.length > 50) {
-                    return 'Region must be up to 50 characters';
-                }
-                break;
-            case 'pinCode':
-                if (!/^\d{4,6}$/.test(value)) {
-                    return 'Pin code must be 4-6 digits';
-                }
-                break;
-            default:
-                return '';
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'businessUnitCode':
+        if (!/^[a-zA-Z0-9]{4}$/.test(value)) {
+          return 'Business Unit Code must be exactly 4 alphanumeric characters';
         }
+        break;
+      case 'businessUnitDesc':
+        if (value.length > 30 || !/^[a-zA-Z0-9 ]+$/.test(value)) {
+          return 'Business Unit Description must be alphanumeric and up to 30 characters';
+        }
+        break;
+      case 'street1':
+        if (!value.trim()) return 'Street 1 is required';
+        if (value.length > 50) {
+          return 'Street address must be up to 50 characters';
+        }
+        break;
+      case 'street2':
+        if (value.length > 50) {
+          return 'Street address must be up to 50 characters';
+        }
+        break;
+      case 'city':
+        if (!value.trim()) return 'City is required';
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'Must contain only letters and up to 30 characters';
+        }
+        break;
+      case 'state':
+        if (!value.trim()) return 'State is required';
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'Must contain only letters and up to 30 characters';
+        }
+        break;
+      case 'country':
+        if (!value.trim()) return 'Country is required';
+        if (value.length > 30 || !/^[a-zA-Z ]+$/.test(value)) {
+          return 'Must contain only letters and up to 30 characters';
+        }
+        break;
+      case 'region':
+        if (!value.trim()) return 'Region is required';
+        if (value.length > 50) {
+          return 'Region must be up to 50 characters';
+        }
+        break;
+      case 'pinCode':
+        if (!value.trim()) return 'Pin Code is required';
+        if (!/^\d{4,6}$/.test(value)) {
+          return 'Pin code must be 4-6 digits';
+        }
+        break;
+      default:
         return '';
-    };
+    }
+    return '';
+  };
 
-    const handleCancel = () => {
-        window.location.href = '/displayBusinessUnit'; 
-      };
+  const handleCancel = () => {
+    navigate('/displayBusinessUnit');
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // For Business Unit Code, convert to uppercase and remove spaces
+    if (name === "businessUnitCode") {
+      const processedValue = value.toUpperCase().replace(/\s/g, '');
+      setFormData(prev => ({ ...prev, [name]: processedValue }));
       
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        
-        // Validate the field
-        const error = validateField(name, value);
-        setErrors(prev => ({
-            ...prev,
-            [name]: error
-        }));
- if (name === "country") {
-      setFormData((prevData) => ({
-        ...prevData,
+      const error = validateField(name, processedValue);
+      setErrors(prev => ({ ...prev, [name]: error }));
+      return;
+    }
+
+    const error = validateField(name, value);
+    setErrors(prev => ({ ...prev, [name]: error }));
+
+    if (name === "country") {
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
-        city: "", // Reset city when country changes
+        city: ""
       }));
     } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-  
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        
-        // Validate all fields before submission
-        let formValid = true;
-        const newErrors = {};
-        
-        Object.keys(formData).forEach(key => {
-            const error = validateField(key, formData[key]);
-            if (error) {
-                newErrors[key] = error;
-                formValid = false;
-            }
-        });
-        
-        setErrors(newErrors);
-        
-        if (formValid) {
-            // In a real app, you would send this data to your backend
-            console.log("Form data valid, ready to submit:", formData);
-            alert("Factory Unit created successfully (simulated)!");
-            // Reset form after successful submission
-            setFormData({
-                factoryCode: "",
-                factoryName: "",
-                street1: "",
-                street2: "",
-                city: "",
-                state: "",
-                region: "",
-                country: "",
-                pinCode: "",
-              
-            });
-        } else {
-            alert("Please fix the errors in the form before submitting.");
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    return (
-        <div className="container">
-            
+    // Validate all fields before submission
+    let formValid = true;
+    const newErrors = {};
+    
+    Object.keys(formData).forEach(key => {
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        formValid = false;
+      }
+    });
+    
+    setErrors(newErrors);
+    
+    if (!formValid) {
+      setIsSubmitting(false);
+      return;
+    }
 
-                <form onSubmit={handleSubmit}>
-                    {/* Business Unit Details */}
-                    <div className="header-box">
-                        <h2>Business Unit Details</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="businessCode">Business Unit Code*</label>
-                                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    1- Business Unit Code must be exactly 4 digits. <br />
-                    2- Business Unit Code must be unique. <br />
-                    3- Business Unit Code must not contain any special characters.  <br />
-                    4- Business Unit Code must not contain any spaces. <br /> 
-                    5- Business Unit Code once created then it can be not delete. <br />
-                  </span>
+    try {
+      const response = await fetch('http://localhost:3003/api/business-units', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create business unit');
+      }
+
+      const createdData = await response.json();
+
+      alert("Business Unit created successfully!");
+      navigate('/displayBusinessUnit');
+    } catch (error) {
+      console.error('Error creating business unit:', error);
+      alert(error.message || "An error occurred while creating the business unit");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="container">
+      <form onSubmit={handleSubmit}>
+        {/* Business Unit Details */}
+        <div className="header-box">
+          <h2>Business Unit Details</h2>
+          <div className="data-container">
+            <div className="data">
+              <label htmlFor="businessUnitCode">Business Unit Code*</label>
+              <span className="info-icon-tooltip">
+                <i className="fas fa-info-circle" />
+                <span className="tooltip-text">
+                  1- Must be exactly 4 alphanumeric characters<br />
+                  2- Must be unique<br />
+                  3- No special characters or spaces<br />
+                  4- Cannot be changed after creation
                 </span>
-                                <input
-                                    type="text"
-                                    id="businessCode"
-                                    name="businessCode"
-                                    value={formData.businessCode}
-                                    onChange={handleChange}
-                                    maxLength={4}
-                                    required
-                                />
-                                {errors.businessCode && <span className="error">{errors.businessCode}</span>}
-                            </div>
-                            <div className="data">
-                                <label htmlFor="businessName">Business Unit Name*</label>
-                                <span className="info-icon-tooltip">
-                  <i className="fas fa-info-circle" />
-                  <span className="tooltip-text">
-                    Business Unit Name must be alphanumeric and up to 30 characters.
-                  </span>
-                </span>
-                                <input
-                                    type="text"
-                                    id="businessName"
-                                    name="businessName"
-                                    value={formData.factoryName}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.businessName && <span className="error">{errors.businessName}</span>}
-                            </div>
-                        </div>
-                    </div>
+              </span>
+              <input
+                type="text"
+                id="businessUnitCode"
+                name="businessUnitCode"
+                value={formData.businessUnitCode}
+                onChange={handleChange}
+                maxLength={4}
+                required
+                className={errors.businessUnitCode ? "error" : ""}
+              />
+              {errors.businessUnitCode && (
+                <div className="error-message">{errors.businessUnitCode}</div>
+              )}
+            </div>
+            <div className="data">
+              <label htmlFor="businessUnitDesc">Business Unit Description*</label>
+              <input
+                type="text"
+                id="businessUnitDesc"
+                name="businessUnitDesc"
+                value={formData.businessUnitDesc}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className={errors.businessUnitDesc ? "error" : ""}
+              />
+              {errors.businessUnitDesc && (
+                <div className="error-message">{errors.businessUnitDesc}</div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                    {/* Address Details */}
-                    <div className="item-box">
-                        <h2>Address Details</h2>
-                        <div className="data-container">
-                            <div className="data">
-                                <label htmlFor="street1">Street 1*</label>
-                                <input
-                                    type="text"
-                                    id="street1"
-                                    name="street1"
-                                    value={formData.street1}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                    required
-                                />
-                                {errors.street1 && <span className="error">{errors.street1}</span>}
-                            </div>
+        {/* Address Details */}
+        <div className="item-box">
+          <h2>Address Details</h2>
+          <div className="data-container">
+            <div className="data">
+              <label htmlFor="street1">Street 1*</label>
+              <input
+                type="text"
+                id="street1"
+                name="street1"
+                value={formData.street1}
+                onChange={handleChange}
+                maxLength={50}
+                required
+                className={errors.street1 ? "error" : ""}
+              />
+              {errors.street1 && (
+                <div className="error-message">{errors.street1}</div>
+              )}
+            </div>
 
-                            <div className="data">
-                                <label htmlFor="street2">Street 2</label>
-                                <input
-                                    type="text"
-                                    id="street2"
-                                    name="street2"
-                                    value={formData.street2}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                />
-                                {errors.street2 && <span className="error">{errors.street2}</span>}
-                            </div>
+            <div className="data">
+              <label htmlFor="street2">Street 2</label>
+              <input
+                type="text"
+                id="street2"
+                name="street2"
+                value={formData.street2}
+                onChange={handleChange}
+                maxLength={50}
+                className={errors.street2 ? "error" : ""}
+              />
+              {errors.street2 && (
+                <div className="error-message">{errors.street2}</div>
+              )}
+            </div>
 
-                            <div className="data">
-                                <label htmlFor="state">State*</label>
-                                <input
-                                    type="text"
-                                    id="state"
-                                    name="state"
-                                    value={formData.state}
-                                    onChange={handleChange}
-                                    maxLength={30}
-                                    required
-                                />
-                                {errors.state && <span className="error">{errors.state}</span>}
-                            </div>
+            <div className="data">
+              <label htmlFor="state">State*</label>
+              <input
+                type="text"
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className={errors.state ? "error" : ""}
+              />
+              {errors.state && (
+                <div className="error-message">{errors.state}</div>
+              )}
+            </div>
 
-                            <div className="data">
+                <div className="data">
                 <label htmlFor="region">Region*</label>
                 <select
                   id="region"
@@ -534,56 +570,59 @@ export default function CreateBusinessUnitForm() {
                   <span className="error">{errors.country}</span>
                 )}
               </div>
-              <div className="data">
-                <label htmlFor="city">City*</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a city</option>
-                  {formData.country === "India"
-                    ? indianCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : otherCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                </select>
-                {errors.city && <span className="error">{errors.city}</span>}
-              </div>
-
-                            <div className="data">
-                                <label htmlFor="pinCode">Pin Code*</label>
-                                <input
-                                    type="text"
-                                    id="pinCode"
-                                    name="pinCode"
-                                    value={formData.pinCode}
-                                    onChange={handleChange}
-                                    maxLength={6}
-                                    required
-                                />
-                                {errors.pinCode && <span className="error">{errors.pinCode}</span>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="submit-button">
-            <button type="submit">Save</button>
-          </div>
-                </form>
-                <button className="cancel-button-header" onClick={handleCancel}>
-  Cancel
-</button>
+            <div className="data">
+              <label htmlFor="city">City*</label>
+              <select
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                className={errors.city ? "error" : ""}
+              >
+                <option value="">Select a city</option>
+                {formData.country === "India"
+                  ? indianCities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))
+                  : otherCities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+              </select>
+              {errors.city && (
+                <div className="error-message">{errors.city}</div>
+              )}
             </div>
-      
-    );
+
+            <div className="data">
+              <label htmlFor="pinCode">Pin Code*</label>
+              <input
+                type="text"
+                id="pinCode"
+                name="pinCode"
+                value={formData.pinCode}
+                onChange={handleChange}
+                maxLength={6}
+                required
+                className={errors.pinCode ? "error" : ""}
+              />
+              {errors.pinCode && (
+                <div className="error-message">{errors.pinCode}</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="submit-button">
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </form>
+      <button className="cancel-button-header" onClick={handleCancel}>
+        Cancel
+      </button>
+    </div>
+  );
 }

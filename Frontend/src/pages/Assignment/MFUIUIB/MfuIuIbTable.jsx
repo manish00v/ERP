@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../../../components/Layout/Styles/OrganizationalTable.css';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
 
@@ -7,14 +8,8 @@ const MfuIuIbTable = () => {
   const { setPageTitle, setNewButtonLink } = useContext(PageHeaderContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [assignments, setAssignments] = useState([]);
   const navigate = useNavigate();
-
-  // Mock data for MFU-IU-IB assignments
-  const mockData = [
-    { id: 1, mfuCode: 'MFU01', inventoryUnitCode: 'IU01', inventoryBayCode: 'IB01' },
-    { id: 2, mfuCode: 'MFU02', inventoryUnitCode: 'IU02', inventoryBayCode: 'IB02' },
-    { id: 3, mfuCode: 'MFU03', inventoryUnitCode: 'IU03', inventoryBayCode: 'IB03' },
-  ];
 
   useEffect(() => {
     setPageTitle('MFU - Inventory Unit - Inventory Bay');
@@ -26,16 +21,32 @@ const MfuIuIbTable = () => {
     };
   }, [setPageTitle, setNewButtonLink]);
 
-  // Simulate data loading with search
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Simulate API call with search term
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Fetch factory units with Inventory relationships
+        const response = await axios.get('http://localhost:3003/api/factory-units', {
+        
+        });
+
+        // Transform the data to match our table structure
+        const transformedData = response.data
+          .filter(factoryUnit => factoryUnit.InventoryUnitId || factoryUnit.InventoryBayId)
+          .map(factoryUnit => ({
+            id: factoryUnit.id,
+            mfuCode: factoryUnit.factoryUnitCode,
+            InventoryUnitCode: factoryUnit.InventoryUnitId,
+            InventoryUnitDesc: factoryUnit.InventoryUnit?.InventoryUnitDesc || '',
+            InventoryBayCode: factoryUnit.InventoryBayId,
+            InventoryBayDesc: factoryUnit.InventoryBay?.InventoryBayDesc || ''
+          }));
+
+        setAssignments(transformedData);
         setIsLoading(false);
       } catch (err) {
-        setError('Failed to load data');
+        console.error('Error fetching assignments:', err);
+        setError('Failed to load data. Please try again.');
         setIsLoading(false);
       }
     };
@@ -43,12 +54,21 @@ const MfuIuIbTable = () => {
     fetchData();
   }, []);
 
-  const handleCodeClick = (code) => {
-    navigate(`/editMfuIuIbAssignment`);
+  const handleCodeClick = (type, code) => {
+    if (type === 'mfu') {
+      navigate(`/editMfuIuIbAssignment/${code}`);
+    } else if (type === 'iu') {
+      navigate(`/inventory-units/${code}`);
+    } else if (type === 'ib') {
+      navigate(`/inventory-bays/${code}`);
+    }
   };
+
+
 
   return (
     <div className="organizational-container-table">
+     
 
       {/* Assignment Table */}
       <div className="organizational__table-wrapper">
@@ -63,51 +83,57 @@ const MfuIuIbTable = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="3" className="organizational__loading-message">Loading...</td>
+                <td colSpan="5" className="organizational__loading-message">Loading...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="3" className="organizational__error-message">
+                <td colSpan="5" className="organizational__error-message">
                   Error: {error}
                 </td>
               </tr>
-            ) : mockData.length > 0 ? (
-              mockData.map((entity) => (
+            ) : assignments.length > 0 ? (
+              assignments.map((assignment) => (
                 <tr 
-                  key={entity.id} 
+                  key={assignment.id} 
                   className="organizational-table__row organizational-table__row--body"
                 >
                   <td className="organizational-table__cell">
                     <span 
                       className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.mfuCode)}
+                      onClick={() => handleCodeClick('mfu', assignment.mfuCode)}
                     >
-                      {entity.mfuCode}
+                      {assignment.mfuCode}
                     </span>
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.inventoryUnitCode)}
-                    >
-                      {entity.inventoryUnitCode}
-                    </span>
+                    {assignment.InventoryUnitCode ? (
+                      <span 
+                        className="organizational-table__code-link"
+                        onClick={() => handleCodeClick('iu', assignment.InventoryUnitCode)}
+                      >
+                        {assignment.InventoryUnitCode}
+                      </span>
+                    ) : '-'}
+                  </td>
+              
+                  <td className="organizational-table__cell">
+                    {assignment.InventoryBayCode ? (
+                      <span 
+                        className="organizational-table__code-link"
+                        onClick={() => handleCodeClick('ib', assignment.InventoryBayCode)}
+                      >
+                        {assignment.InventoryBayCode}
+                      </span>
+                    ) : '-'}
                   </td>
                   <td className="organizational-table__cell">
-                    <span 
-                      className="organizational-table__code-link"
-                      onClick={() => handleCodeClick(entity.inventoryBayCode)}
-                    >
-                      {entity.inventoryBayCode}
-                    </span>
+                    {assignment.InventoryBayDesc || '-'}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="organizational__no-data-message">
-                  {searchTerm ? 'No matching records found' : 'No assignments found'}
-                </td>
+                
               </tr>
             )}
           </tbody>

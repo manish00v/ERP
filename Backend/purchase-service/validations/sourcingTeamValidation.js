@@ -4,9 +4,6 @@ const sourcingTeamIdRegex = /^[a-zA-Z0-9]{4}$/;
 const sourcingUnitIdRegex = /^[a-zA-Z0-9]{4}$/;
 const nameRegex = /^[a-zA-Z0-9 ]{1,30}$/;
 const teamTypes = ['Individual', 'Group'];
-const streetAddressRegex = /^[a-zA-Z0-9 ,.-]{1,50}$/;
-const cityRegex = /^[a-zA-Z ]{1,30}$/;
-const regionRegex = /^[a-zA-Z0-9 ]{1,20}$/;
 const countryCodeRegex = /^[a-zA-Z0-9+ -]{1,5}$/;
 const pinCodeRegex = /^[0-9]{6}$/;
 const phoneRegex = /^[0-9]{10,12}$/;
@@ -27,18 +24,6 @@ const createSourcingTeamSchema = Joi.object({
     .required(),
   TeamType: Joi.string()
     .valid(...teamTypes)
-    .required(),
-  StreetAddress: Joi.string()
-    .pattern(streetAddressRegex)
-    .max(50)
-    .required(),
-  City: Joi.string()
-    .pattern(cityRegex)
-    .max(30)
-    .required(),
-  Region: Joi.string()
-    .pattern(regionRegex)
-    .max(20)
     .required(),
   CountryCode: Joi.string()
     .pattern(countryCodeRegex)
@@ -72,16 +57,7 @@ const updateSourcingTeamSchema = Joi.object({
     .max(30),
   TeamType: Joi.string()
     .valid(...teamTypes),
-  StreetAddress: Joi.string()
-    .pattern(streetAddressRegex)
-    .max(50),
-  City: Joi.string()
-    .pattern(cityRegex)
-    .max(30),
-  Region: Joi.string()
-    .pattern(regionRegex)
-    .max(20),
-  CountryCode: Joi.string()
+   CountryCode: Joi.string()
     .pattern(countryCodeRegex)
     .max(5),
   PinCode: Joi.string()

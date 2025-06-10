@@ -2,113 +2,150 @@ const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
 const prisma = new PrismaClient();
 
-const FACTORY_UNIT_SERVICE_URL = process.env.FACTORY_UNIT_SERVICE_URL || 'http://factory-unit-service:3000';
-
 class InventoryUnitService {
   static async validateFactoryUnitCode(factoryUnitCode) {
-    if (!factoryUnitCode) return true; // Skip if not provided
+    if (!factoryUnitCode) return true;
     
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/factory-units/${factoryUnitCode}`,
+        `http://localhost:3003/api/factory-units/${factoryUnitCode.toUpperCase()}`,
         { timeout: 5000 }
       );
       return response.status === 200;
     } catch (error) {
-      if (error.response?.status === 404) {
-        return false;
-      }
+      if (error.response?.status === 404) return false;
       throw new Error(`Factory Unit service error: ${error.message}`);
     }
   }
 
   static async getAllInventoryUnits() {
-    return await prisma.inventoryUnit.findMany();
+    return await prisma.inventoryUnit.findMany({
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true,
+        InventoryControl: true,
+        StreetAddress: true,
+        City: true,
+        Region: true,
+        Country: true,
+        PinCode: true,
+        factoryUnitCode: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
   }
 
-  static async getInventoryUnitById(id) {
-    return await prisma.inventoryUnit.findUnique({
-      where: { id }
+  static async getInventoryUnitByCode(InventoryUnitId) {
+    const unit = await prisma.inventoryUnit.findUnique({
+      where: { InventoryUnitId: InventoryUnitId },
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true,
+        InventoryControl: true,
+        StreetAddress: true,
+        City: true,
+        Region: true,
+        Country: true,
+        PinCode: true,
+        factoryUnitCode: true,
+        createdAt: true,
+        updatedAt: true
+      }
     });
+    if (!unit) throw new Error('Inventory Unit not found');
+    return unit;
   }
 
   static async createInventoryUnit(data) {
-    // Validate FactoryUnitCode exists if provided
+    data.InventoryUnitId = data.InventoryUnitId;
     if (data.factoryUnitCode) {
+      data.factoryUnitCode = data.factoryUnitCode;
       const isValid = await this.validateFactoryUnitCode(data.factoryUnitCode);
-      if (!isValid) {
-        throw new Error('Factory Unit Code does not exist');
-      }
+      if (!isValid) throw new Error('Factory Unit Code does not exist');
     }
 
-    // Check if InventoryUnitId already exists
     const existingUnit = await prisma.inventoryUnit.findUnique({
       where: { InventoryUnitId: data.InventoryUnitId }
     });
-
-    if (existingUnit) {
-      throw new Error('Inventory Unit ID already exists');
-    }
+    if (existingUnit) throw new Error('Inventory Unit ID already exists');
 
     return await prisma.inventoryUnit.create({
-      data: {
-        InventoryUnitId: data.InventoryUnitId,
-        InventoryUnitName: data.InventoryUnitName,
-        InventoryControl: data.InventoryControl,
-        StreetAddress: data.StreetAddress,
-        City: data.City,
-        Region: data.Region,
-        Country: data.Country,
-        PinCode: data.PinCode,
-        factoryUnitCode: data.factoryUnitCode || null
+      data,
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true,
+        InventoryControl: true,
+        StreetAddress: true,
+        City: true,
+        Region: true,
+        Country: true,
+        PinCode: true,
+        factoryUnitCode: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
   }
 
-  static async updateInventoryUnit(id, data) {
-    // Prevent updating InventoryUnitId
-    if (data.InventoryUnitId) {
-      throw new Error('Inventory Unit ID cannot be changed');
-    }
-
-    // Validate FactoryUnitCode exists if provided
+  static async updateInventoryUnitByCode(InventoryUnitId, data) {
+    InventoryUnitId = InventoryUnitId;
+    await this.getInventoryUnitByCode(InventoryUnitId); // Verify exists
+    
     if (data.factoryUnitCode) {
+      data.factoryUnitCode = data.factoryUnitCode;
       const isValid = await this.validateFactoryUnitCode(data.factoryUnitCode);
-      if (!isValid) {
-        throw new Error('Factory Unit Code does not exist');
-      }
+      if (!isValid) throw new Error('Factory Unit Code does not exist');
     }
 
     return await prisma.inventoryUnit.update({
-      where: { id },
-      data: {
-        InventoryUnitName: data.InventoryUnitName,
-        InventoryControl: data.InventoryControl,
-        StreetAddress: data.StreetAddress,
-        City: data.City,
-        Region: data.Region,
-        Country: data.Country,
-        PinCode: data.PinCode,
-        factoryUnitCode: data.factoryUnitCode
+      where: { InventoryUnitId },
+      data,
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true,
+        InventoryControl: true,
+        StreetAddress: true,
+        City: true,
+        Region: true,
+        Country: true,
+        PinCode: true,
+        factoryUnitCode: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
   }
 
-  static async deleteInventoryUnit(id) {
+  static async deleteInventoryUnitByCode(InventoryUnitId) {
+    InventoryUnitId = InventoryUnitId.toUpperCase();
+    await this.getInventoryUnitByCode(InventoryUnitId); // Verify exists
     return await prisma.inventoryUnit.delete({
-      where: { id }
+      where: { InventoryUnitId },
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true
+      }
     });
   }
 
   static async getInventoryUnitsByFactoryCode(factoryUnitCode) {
-    // First validate the factory unit exists
+    factoryUnitCode = factoryUnitCode.toUpperCase();
     const isValid = await this.validateFactoryUnitCode(factoryUnitCode);
-    if (!isValid) {
-      throw new Error('Factory Unit Code does not exist');
-    }
-
-    return await prisma.inventoryUnit.findMany({
-      where: { factoryUnitCode }
+    if (!isValid) throw new Error('Factory Unit Code does not exist');
+    return await prisma.InventoryUnit.findMany({
+      where: { factoryUnitCode },
+      select: {
+        InventoryUnitId: true,
+        InventoryUnitName: true,
+        InventoryControl: true,
+        StreetAddress: true,
+        City: true,
+        Region: true,
+        Country: true,
+        PinCode: true,
+        factoryUnitCode: true
+      }
     });
   }
 }

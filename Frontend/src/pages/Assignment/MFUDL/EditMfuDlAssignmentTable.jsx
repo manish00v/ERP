@@ -1,66 +1,148 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import '../BUMFUBE/EditAssignmentTable/EditAssignmentTable.css';
 
-const MfuDlManager = () => {
+const EditMfuDlAssignmentTable = () => {
+  const { factoryUnitCode } = useParams();
   const navigate = useNavigate();
   
-  // Initial state for table data
-  const [assignments, setAssignments] = useState([
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      deliveryLocationCode: 'DL1',
-      deliveryLocationDescription: 'Delivery Location-1',
-    },
-    {
-      mfuCode: 'MFU1',
-      mfuDescription: 'Manufacturing Unit 1',
-      deliveryLocationCode: 'DL2',
-      deliveryLocationDescription: 'Delivery Location-2',
-    }
-  ]);
+  // State for assignment data
+  const [assignment, setAssignment] = useState({
+    factoryUnitCode: '',
+    factoryUnitName: '',
+    deliveryLocationCode: '',
+    deliveryLocationName: ''
+  });
 
-  // Sample dropdown options
-  const mfuOptions = [
-    { code: 'MFU1', description: 'Manufacturing Unit 1' },
-    { code: 'MFU2', description: 'Manufacturing Unit 2' },
-    { code: 'MFU3', description: 'Manufacturing Unit 3' }
-  ];
-
-  const deliveryLocationOptions = [
-    { code: 'DL1', description: 'Delivery Location-1' },
-    { code: 'DL2', description: 'Delivery Location-2' },
-    { code: 'DL3', description: 'Delivery Location-3' }
-  ];
-
+  // State for dropdown options
+  const [mfuOptions, setMfuOptions] = useState([]);
+  const [dlOptions, setDlOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   // State to track edit mode
   const [isEditing, setIsEditing] = useState(false);
   
+  // Fetch initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch dropdown options
+        const [mfuRes, dlRes] = await Promise.all([
+          axios.get('http://localhost:3003/api/factory-units'),
+          axios.get('http://localhost:3003/api/delivery-locations')
+        ]);
+        
+        setMfuOptions(mfuRes.data.map(item => ({
+          code: item.factoryUnitCode,
+          name: item.factoryUnitName
+        })));
+        
+        setDlOptions(dlRes.data.map(item => ({
+          code: item.deliveryLocationCode,
+          name: item.deliveryLocationName
+        })));
+        
+        // If editing existing assignment, fetch current data
+        if (factoryUnitCode) {
+          const mfuRes = await axios.get(`http://localhost:3003/api/factory-units/${factoryUnitCode}`);
+          const currentData = mfuRes.data;
+          
+          setAssignment({
+            factoryUnitCode: currentData.factoryUnitCode,
+            factoryUnitName: currentData.factoryUnitName,
+            deliveryLocationCode: currentData.deliveryLocationCode || '',
+            deliveryLocationName: currentData.deliveryLocationName || ''
+          });
+        }
+        
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    fetchData();
+  }, [factoryUnitCode]);
+
   // Handler for Edit button
   const handleEdit = () => {
     setIsEditing(true);
   };
   
   // Handler for Save button
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save the data to a backend
-    alert('Changes saved successfully!');
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare data for saving
+      const dataToSave = {
+        factoryUnitCode: assignment.factoryUnitCode,
+        factoryUnitName: assignment.factoryUnitName,
+        deliveryLocationCode: assignment.deliveryLocationCode,
+        deliveryLocationName: dlOptions.find(dl => dl.code === assignment.deliveryLocationCode)?.name || ''
+      };
+      
+      // Update the factory unit with the delivery location
+      await axios.put(
+        `http://localhost:3003/api/factory-units/${assignment.factoryUnitCode}`,
+        { deliveryLocationCode: assignment.deliveryLocationCode }
+      );
+      
+      setIsEditing(false);
+      alert('Changes saved successfully!');
+      navigate('/MfuDl');
+    } catch (err) {
+      console.error('Error saving data:', err);
+      alert(`Error saving data: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Handler for Cancel button
   const handleCancel = () => {
     if (!isEditing) {
-      // When not in edit mode (paired with Edit button), navigate back
       navigate('/MfuDl');
     } else {
-      // When in edit mode (paired with Save button), just cancel editing
       setIsEditing(false);
-      // You might want to reset any unsaved changes here
+      // Reset any unsaved changes by reloading the data
+      window.location.reload();
     }
   };
 
+  // Handle input changes
+  const handleChange = (field, value) => {
+    setAssignment(prev => {
+      const updated = {...prev, [field]: value};
+      
+      // Auto-update names when codes are selected
+      if (field === 'factoryUnitCode') {
+        const selectedMfu = mfuOptions.find(mfu => mfu.code === value);
+        if (selectedMfu) {
+          updated.factoryUnitName = selectedMfu.name;
+        }
+      } else if (field === 'deliveryLocationCode') {
+        const selectedDl = dlOptions.find(dl => dl.code === value);
+        if (selectedDl) {
+          updated.deliveryLocationName = selectedDl.name;
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  if (isLoading) {
+    return <div className="business-entity-container">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="business-entity-container">Error: {error}</div>;
+  }
 
   return (
     <div className="business-entity-container">
@@ -80,7 +162,6 @@ const MfuDlManager = () => {
               Cancel
             </button>
           </div>
-          
         </div>
         
         <div className="table-container">
@@ -88,100 +169,77 @@ const MfuDlManager = () => {
             <thead>
               <tr>
                 <th>MFU Code</th>
-                <th>MFU Description</th>
+                <th>MFU Name</th>
                 <th>Delivery Location Code</th>
-                <th>Delivery Location Description</th>
+                <th>Delivery Location Name</th>
               </tr>
             </thead>
             <tbody>
-              {assignments.map((assignment, index) => (
-                <tr key={index}>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={assignment.mfuCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedMfu = mfuOptions.find(opt => opt.code === e.target.value);
-                          if (selectedMfu) {
-                            updatedAssignments[index].mfuDescription = selectedMfu.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
-                      >
-                        {mfuOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignment.mfuCode
-                    )}
-                  </td>
-                  <td className="description-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={assignment.mfuDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].mfuDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
-                      />
-                    ) : (
-                      assignment.mfuDescription
-                    )}
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        className="editable-input"
-                        value={assignment.deliveryLocationCode}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].deliveryLocationCode = e.target.value;
-                          // Auto-fill description when code is selected
-                          const selectedDl = deliveryLocationOptions.find(opt => opt.code === e.target.value);
-                          if (selectedDl) {
-                            updatedAssignments[index].deliveryLocationDescription = selectedDl.description;
-                          }
-                          setAssignments(updatedAssignments);
-                        }}
-                      >
-                        {deliveryLocationOptions.map((option) => (
-                          <option key={option.code} value={option.code}>
-                            {option.code}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignment.deliveryLocationCode
-                    )}
-                  </td>
-                  <td className="description-cell">
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        className="editable-input"
-                        value={assignment.deliveryLocationDescription}
-                        onChange={(e) => {
-                          const updatedAssignments = [...assignments];
-                          updatedAssignments[index].deliveryLocationDescription = e.target.value;
-                          setAssignments(updatedAssignments);
-                        }}
-                      />
-                    ) : (
-                      assignment.deliveryLocationDescription
-                    )}
-                  </td>
-                </tr>
-              ))}
+              <tr>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.factoryUnitCode}
+                      onChange={(e) => handleChange('factoryUnitCode', e.target.value)}
+                      disabled={!!factoryUnitCode} // Disable if editing existing assignment
+                    >
+                      <option value="">Select MFU</option>
+                      {mfuOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.factoryUnitCode
+                  )}
+                </td>
+                <td className="description-cell">
+                  {isEditing ? (
+                    <input 
+                      type="text" 
+                      className="editable-input"
+                      value={assignment.factoryUnitName}
+                      onChange={(e) => handleChange('factoryUnitName', e.target.value)}
+                      readOnly // Name is auto-filled when code is selected
+                    />
+                  ) : (
+                    assignment.factoryUnitName
+                  )}
+                </td>
+                <td>
+                  {isEditing ? (
+                    <select
+                      className="editable-input"
+                      value={assignment.deliveryLocationCode}
+                      onChange={(e) => handleChange('deliveryLocationCode', e.target.value)}
+                    >
+                      <option value="">Select Delivery Location</option>
+                      {dlOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    assignment.deliveryLocationCode || 'N/A'
+                  )}
+                </td>
+                <td className="description-cell">
+                  {isEditing ? (
+                    <input 
+                      type="text" 
+                      className="editable-input"
+                      value={assignment.deliveryLocationName}
+                      onChange={(e) => handleChange('deliveryLocationName', e.target.value)}
+                      readOnly // Name is auto-filled when code is selected
+                    />
+                  ) : (
+                    assignment.deliveryLocationName || 'N/A'
+                  )}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -190,4 +248,4 @@ const MfuDlManager = () => {
   );
 };
 
-export default MfuDlManager;
+export default EditMfuDlAssignmentTable;

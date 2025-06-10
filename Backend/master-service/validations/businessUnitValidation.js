@@ -95,81 +95,37 @@ const baseSchema = {
             'any.required': 'Postal code is required'
         }),
 
-    businessEntityCode: Joi.string()
+    salesChannelId: Joi.string()
         .length(4)
-        .required()
-        .messages({
-            'string.base': 'Entity Code must be a string',
-            'string.length': 'Entity Code must be exactly 4 characters',
-            'any.required': 'Entity Code is required'
-        }),
-
-    factoryUnitCode: Joi.string()
-        .length(4)
+        .pattern(/^[a-zA-Z0-9]+$/)
         .allow(null, '')
         .messages({
-            'string.base': 'Factory Code must be a string',
-            'string.length': 'Factory Code must be exactly 4 characters'
-        }),
-
-    salesChannelId: Joi.alternatives().try(
-        Joi.string().length(4),
-        Joi.number()
-    )
-    .allow(null, '')
-    .messages({
-        'alternatives.types': 'Sales Channel ID must be a string or number',
-        'string.length': 'Sales Channel ID must be exactly 4 characters if string'
-    }),
-
-    salesChannelCode: Joi.string()
-        .length(4)
-        .allow(null, '')
-        .messages({
-            'string.base': 'Sales Channel Code must be a string',
-            'string.length': 'Sales Channel Code must be exactly 4 characters'
+            'string.base': 'Sales Channel ID must be a string',
+            'string.length': 'Sales Channel ID must be exactly 4 characters',
+            'string.pattern.base': 'Sales Channel ID must be alphanumeric'
         }),
 
     salesOfficeCode: Joi.string()
         .length(4)
+        .pattern(/^[a-zA-Z0-9]+$/)
         .allow(null, '')
         .messages({
             'string.base': 'Office Code must be a string',
-            'string.length': 'Office Code must be exactly 4 characters'
+            'string.length': 'Office Code must be exactly 4 characters',
+            'string.pattern.base': 'Office Code must be alphanumeric'
         })
 };
 
-// Enhanced relationship validator with better error messages
+// Enhanced relationship validator with optional relationships
 const relationshipValidator = (value, helpers) => {
-    const hasFactory = !!value.factoryUnitCode;
-    const hasSales = !!(value.salesChannelCode || value.salesOfficeCode);
+    const hasSales = !!(value.salesOfficeCode || value.salesChannelId);
 
-    // EXCLUSIVE RELATIONSHIP RULE
-    if (hasFactory && hasSales) {
-        return helpers.error('any.invalid', {
-            message: 'A Business Unit cannot have both Factory AND Sales relationships'
-        });
-    }
-
-    // FACTORY RELATIONSHIP RULES
-    if (hasFactory) {
-        // No additional validation needed beyond the required fields
-    }
-
-    // SALES RELATIONSHIP RULES
     if (hasSales) {
-        if (!value.salesChannelCode || !value.salesOfficeCode) {
+        if (!value.salesChannelId || !value.salesOfficeCode) {
             return helpers.error('any.required', {
-                message: 'Sales relationships require BOTH Sales Channel and Sales Office'
+                message: 'When providing sales relationships, both Sales Channel ID and Sales Office Code must be provided'
             });
         }
-    }
-
-    // AT LEAST ONE RELATIONSHIP REQUIRED
-    if (!hasFactory && !hasSales) {
-        return helpers.error('any.required', {
-            message: 'Business Unit must have either Factory OR Sales relationships'
-        });
     }
 
     return value;
@@ -180,11 +136,14 @@ const createSchema = Joi.object(baseSchema)
     .custom(relationshipValidator)
     .messages({
         'object.unknown': 'Field "{{#label}}" is not allowed',
-        'object.base': 'Request body must be a valid object'
+        'object.base': 'Request body must be a valid object',
+        'any.invalid': '{{#message}}',
+        'any.required': '{{#message}}'
     });
 
 // Update schema with restricted fields
 const updateSchema = Joi.object({
+    businessUnitCode: baseSchema.businessUnitCode.optional(),
     businessUnitDesc: baseSchema.businessUnitDesc.optional(),
     street1: baseSchema.street1.optional(),
     street2: baseSchema.street2,
@@ -192,7 +151,9 @@ const updateSchema = Joi.object({
     state: baseSchema.state.optional(),
     region: baseSchema.region,
     country: baseSchema.country.optional(),
-    pinCode: baseSchema.pinCode.optional()
+    pinCode: baseSchema.pinCode.optional(),
+    salesChannelId: baseSchema.salesChannelId,
+    salesOfficeCode: baseSchema.salesOfficeCode
 })
 .min(1)
 .messages({
@@ -221,7 +182,7 @@ const validateBusinessUnit = (data) => {
         };
     }
 
-    return { value }; // Return the validated data
+    return { value };
 };
 
 const validateBusinessUnitUpdate = (data) => {
@@ -232,23 +193,24 @@ const validateBusinessUnitUpdate = (data) => {
     });
 
     if (error) {
-        const formattedErrors = error.details.map(detail => ({
-            field: detail.path.join('.'),
-            message: detail.message,
-            type: detail.type
-        }));
-        throw { 
-            name: 'ValidationError',
-            details: formattedErrors,
-            message: 'Business Unit update validation failed'
+        return {
+            error: {
+                name: 'ValidationError',
+                message: 'Business Unit update validation failed',
+                details: error.details.map(detail => ({
+                    field: detail.path.join('.'),
+                    message: detail.message.replace(/['"]+/g, ''),
+                    type: detail.type
+                }))
+            }
         };
     }
 
-    return value;
+    return { value };
 };
 
 module.exports = {
     validateBusinessUnit,
     validateBusinessUnitUpdate,
-    businessUnitSchema: createSchema // Optional: export schema for documentation
+    businessUnitSchema: createSchema
 };
