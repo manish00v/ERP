@@ -107,7 +107,22 @@ const Sidebar = () => {
             <i className="fas fa-chevron-right"></i>
           </Link>
         </li>
+
+ <li>
+        <Link
+            to="/masterPage"
+            className={activeChild === "master" ? "active-child" : ""}
+            onClick={() => handleChildClick("master")}
+          >
+            <span>Master Data</span>
+            <i className="fas fa-chevron-right"></i>
+          </Link>
+        </li>
+
       </ul>
+
+      
+
     )}
   </li>
 </ul>

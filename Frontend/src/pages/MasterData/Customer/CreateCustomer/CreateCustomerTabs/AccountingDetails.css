@@ -1,0 +1,35 @@
+/* BusinessEntityForm.css - Unique classes prefixed with 'bef-' */
+
+.bef-container {
+  width: 100%;
+  max-width: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  padding: 20px;
+  background-color: #ffffff;
+}
+
+.bef-form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 20px;
+}
+
+.bef-label {
+  font-size: 14px;
+  color: #000000;
+  text-align: right;
+  min-width: 200px;
+  flex-shrink: 0;
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+.bef-input-box {
+  width: 120px;
+  height: 24px;
+  background-color: #000000;
+  border: none;
+  border-radius: 0;
+  flex-shrink: 0;
+}

@@ -1,0 +1,304 @@
+/* CustomerManagement.css - Unique prefixed classes */
+
+.custmgmt-container {
+  width: 100%;
+  /* height: 100vh; */
+  /* background-color: #f5f5f5; */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+/* Header Styles */
+.custmgmt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.custmgmt-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custmgmt-back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.custmgmt-back-arrow {
+  font-weight: bold;
+}
+
+.custmgmt-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.custmgmt-create-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.custmgmt-create-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Filter Section */
+.custmgmt-filter-section {
+  background-color: white;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.custmgmt-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.custmgmt-dropdown-btn {
+  background-color: #8b4513;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.custmgmt-dropdown-arrow {
+  font-size: 12px;
+}
+
+.custmgmt-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 200px;
+  margin-top: 2px;
+}
+
+.custmgmt-dropdown-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.custmgmt-dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.custmgmt-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.custmgmt-dropdown-item.custmgmt-active {
+  background-color: #f0f0f0;
+}
+
+/* Action Bar */
+.custmgmt-action-bar {
+  background-color: #dbeafe;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  margin: 16px 24px;
+}
+
+.custmgmt-action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.custmgmt-action-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.custmgmt-mark-active {
+  background-color: #2563eb;
+  color: white;
+}
+
+.custmgmt-mark-inactive {
+  background-color: #2563eb;
+  color: white;
+}
+
+.custmgmt-delete {
+  background-color: #dc2626;
+  color: white;
+}
+
+.custmgmt-close-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Table Styles */
+.custmgmt-table-wrapper {
+  background-color: white;
+  margin: 0 24px 24px 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.custmgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.custmgmt-table-header {
+  background-color: #f8f9fa;
+}
+
+.custmgmt-th {
+  background-color: #374151;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  border-right: 1px solid #4b5563;
+}
+
+.custmgmt-th:last-child {
+  border-right: none;
+}
+
+.custmgmt-checkbox-col {
+  width: 40px;
+  padding: 12px 16px;
+  background-color: #374151;
+}
+
+/* .custmgmt-table-row {
+  border-bottom: 1px solid #e5e7eb;
+} */
+
+.custmgmt-table-row:hover {
+  background-color: #f9fafb;
+}
+
+.custmgmt-td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  /* border-right: 1px solid #e5e7eb; */
+}
+
+.custmgmt-td:last-child {
+  border-right: none;
+}
+
+.custmgmt-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.custmgmt-company-cell {
+  position: relative;
+}
+
+.custmgmt-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-top: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.custmgmt-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #333;
+}
+
+.custmgmt-company-cell:hover .custmgmt-tooltip {
+  opacity: 1;
+}
+
+.custmgmt-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.custmgmt-status.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.custmgmt-status.inactive {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* First row special styling */
+.custmgmt-table-row:first-child .custmgmt-checkbox {
+  accent-color: #ef4444;
+}
+
+.custmgmt-table-row:first-child .custmgmt-td:first-child {
+  background-color: #fef2f2;
+}

@@ -1,0 +1,330 @@
+/* CustomerForm.css - Unique prefixed classes to avoid conflicts */
+
+.cfm-container {
+  margin: 0 auto;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.cfm-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.cfm-radio-group {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.cfm-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #495057;
+}
+
+.cfm-radio-input {
+  display: none;
+}
+
+.cfm-radio-custom {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #6c757d;
+  border-radius: 50%;
+  background: white;
+  position: relative;
+}
+
+.cfm-radio-selected {
+  border-color: #dc3545;
+  background: #dc3545;
+}
+
+.cfm-radio-selected::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+}
+
+.cfm-save-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cfm-save-btn:hover {
+  background: #0056b3;
+}
+
+.cfm-form-section {
+  padding: 16px 24px;
+  background: white;
+  flex-shrink: 0;
+}
+
+.cfm-form-row {
+  display: flex;
+  align-items: center; /* Changed from flex-start to center */
+  margin-bottom: 12px;
+  gap: 16px;
+}
+
+.cfm-label {
+  min-width: 140px;
+  font-size: 14px;
+  color: #495057;
+  /* Removed padding-top: 8px; */
+  text-align: right;
+  white-space: nowrap; /* Prevent label text from wrapping */
+}
+
+.cfm-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.cfm-input {
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.cfm-input-company,
+.cfm-input-email,
+.cfm-input-website,
+.cfm-input-lifecycle {
+  width: 200px;
+}
+
+.cfm-input-first,
+.cfm-input-middle,
+.cfm-input-last {
+  width: 100px;
+}
+
+.cfm-select {
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.cfm-select-salutation {
+  width: 100px;
+  background: #343a40;
+  color: white;
+}
+
+.cfm-select-partner {
+  width: 200px;
+  background: #343a40;
+  color: white;
+}
+
+.cfm-individual-only {
+  font-size: 12px;
+  color: #6c757d;
+  margin-left: 8px;
+}
+
+.cfm-help-text {
+  font-size: 12px;
+  color: #6c757d;
+  margin-left: 8px;
+}
+
+.cfm-phone-group {
+  display: flex;
+  gap: 8px;
+}
+
+.cfm-phone-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background: #343a40;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.cfm-phone-work {
+  background: #17a2b8;
+}
+
+.cfm-phone-mobile {
+  background: #6c757d;
+}
+
+.cfm-phone-icon {
+  font-size: 12px;
+}
+
+.cfm-tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.cfm-tab {
+  padding: 12px 24px;
+  border: none;
+  background: none; /* Ensure no background */
+  font-size: 14px;
+  color: #212529; /* Changed from #495057 to darker black */
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+
+.cfm-tab-active {
+  color: #212529; /* Changed from #007bff to keep black */
+  border-bottom-color: #007bff; /* Keep blue underline */
+  background: none; /* Remove background color */
+  font-weight: 600; /* Optional: make active tab text bolder */
+}
+
+.cfm-address-section {
+  background: white;
+  padding: 16px 24px;
+  flex: 1;
+  overflow: auto;
+}
+
+.cfm-address-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.cfm-address-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cfm-address-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 12px 0;
+}
+
+.cfm-shipping-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cfm-copy-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cfm-copy-btn:hover {
+  color: #0056b3;
+}
+
+.cfm-address-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.cfm-address-label {
+  min-width: 80px;
+  font-size: 14px;
+  color: #495057;
+  text-align: left;
+}
+
+.cfm-address-input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white; /* Changed from #343a40 */
+  color: #212529; /* Changed from white */
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.cfm-address-input::placeholder {
+  color: #6c757d; /* Changed from #adb5bd */
+}
+
+.cfm-footer {
+  padding: 12px 24px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.cfm-cancel-btn {
+  background: none;
+  border: 1px solid #6c757d;
+  color: #6c757d;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cfm-cancel-btn:hover {
+  background: #6c757d;
+  color: white;
+}

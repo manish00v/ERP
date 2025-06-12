@@ -1,0 +1,248 @@
+/* Contact Form Unique Styles - cf- prefix to avoid conflicts */
+
+/* .cf-contact-form-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #ffffff;
+} */
+
+.cf-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.cf-contact-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 1200px;
+}
+
+.cf-header-row {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.cf-header-cell {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+  border-right: 1px solid #dee2e6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-header-cell:last-child {
+  border-right: none;
+}
+
+.cf-salutation {
+  width: 100px;
+}
+
+.cf-first-name {
+  width: 120px;
+}
+
+.cf-last-name {
+  width: 120px;
+}
+
+.cf-email {
+  width: 200px;
+}
+
+.cf-work-phone {
+  width: 130px;
+}
+
+.cf-mobile {
+  width: 130px;
+}
+
+.cf-designation {
+  width: 140px;
+}
+
+.cf-department {
+  width: 140px;
+}
+
+.cf-form-row {
+  background-color: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.cf-data-row {
+  background-color: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.cf-data-row:hover {
+  background-color: #f8f9fa;
+}
+
+.cf-form-cell,
+.cf-data-cell {
+  padding: 8px;
+  border-right: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.cf-form-cell:last-child,
+.cf-data-cell:last-child {
+  border-right: none;
+}
+
+.cf-text-input {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #495057;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.cf-text-input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.cf-select-input {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #495057;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.cf-select-input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.cf-button-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cf-add-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  border: 2px solid #20c997;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #20c997;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cf-add-button:hover {
+  background-color: #20c997;
+  color: #ffffff;
+}
+
+.cf-add-button:active {
+  transform: translateY(1px);
+}
+
+.cf-plus-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background-color: #20c997;
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.cf-add-button:hover .cf-plus-icon {
+  background-color: #ffffff;
+  color: #20c997;
+}
+
+.cf-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.cf-save-button {
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cf-save-button:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.cf-cancel-button {
+  background-color: #6c757d;
+  border: 1px solid #6c757d;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cf-cancel-button:hover {
+  background-color: #545b62;
+  border-color: #545b62;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cf-contact-form-container {
+    padding: 10px;
+  }
+  
+  .cf-header-cell,
+  .cf-form-cell,
+  .cf-data-cell {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+  
+  .cf-text-input,
+  .cf-select-input {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+}

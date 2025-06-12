@@ -69,6 +69,13 @@ import EditMfuDlAssignmentTable from "./pages/Assignment/MFUDL/EditMfuDlAssignme
 
 
 
+import MasterPage from "./pages/MasterData/MasterPage/MasterPage";
+import DisplayCustomerPage from "./pages/MasterData/Customer/DisplayCustomerPage";
+import CreateCustomerForm from "./pages/MasterData/Customer/CreateCustomer/CreateCustomerForm";
+import ContactPersonForm from "./pages/MasterData/Customer/CreateCustomer/CreateCustomerTabs/ContactPersons";
+import BankForm from "./pages/MasterData/Customer/CreateCustomer/CreateCustomerTabs/BankDetails";
+import AccountingDetails from "./pages/MasterData/Customer/CreateCustomer/CreateCustomerTabs/AccountingDetails";
+import SalesShippingDetails from "./pages/MasterData/Customer/CreateCustomer/CreateCustomerTabs/SalesShippingDetails";
 
 import Profile from "./header/Profile/Profile";
 import Settings from "./header/Setting/Setting";
@@ -195,6 +202,14 @@ function App() {
           <Route path="/editSalesTeamForm/:salesTeamCode" element={<EditSalesTeamForm />} />   
           <Route path="/displaySalesTeamPage" element={<DisplaySalesTeamPage />} />
           
+
+          <Route path="/masterPage" element={<MasterPage />} />
+          <Route path="/displayCustomerPage" element={<DisplayCustomerPage />} />
+          <Route path="/createCustomerForm" element={<CreateCustomerForm/>}/>
+          <Route path="/contactPersonForm" element={<ContactPersonForm/>}/>
+          <Route path="/bankForm" element={<BankForm/>}/>
+          <Route path="/accountingDetails" element={<AccountingDetails />} />
+          <Route path="/salesShippingDetails" element={<SalesShippingDetails />} />
 
           <Route
             path="/profile"
