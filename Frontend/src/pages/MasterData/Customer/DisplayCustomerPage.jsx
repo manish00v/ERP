@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
 import './DisplayCustomerPage.css';
 
 const DisplayCustomer = () => {
   const [selectedCustomers, setSelectedCustomers] = useState([]);
-  const navigate = useNavigate(); // for back button navigation
-  const [customers] = useState([
+  const navigate = useNavigate();
+  const [customers, setCustomers] = useState([
     {
       id: 1234,
       name: 'ABC',
@@ -48,81 +47,78 @@ const DisplayCustomer = () => {
   const handleFilterSelect = (filterType) => {
     setFilter(filterType);
     setDropdownOpen(false);
-    // Here you would typically filter the customers list
-    // For now we're just setting the filter text
   };
 
   const handleMarkStatus = (status) => {
-    // Here you would update the status of selected customers
-    console.log(`Marking ${selectedCustomers} as ${status}`);
+    setCustomers(customers.map(customer => 
+      selectedCustomers.includes(customer.id) 
+        ? {...customer, status: status} 
+        : customer
+    ));
     setSelectedCustomers([]);
   };
 
   const handleDelete = () => {
-    // Here you would delete the selected customers
-    console.log(`Deleting ${selectedCustomers}`);
+    setCustomers(customers.filter(customer => 
+      !selectedCustomers.includes(customer.id)
+    ));
     setSelectedCustomers([]);
   };
 
   const filteredCustomers = customers.filter(customer => {
     if (filter === 'Active Customers') return customer.status === 'Active';
     if (filter === 'Inactive Customers') return customer.status === 'Inactive';
-    if (filter === 'Duplicate Customers') return false; // Add your duplicate logic here
-    return true; // All Customers
+    if (filter === 'Duplicate Customers') return false;
+    return true;
   });
 
   return (
-    <div className="custmgmt-container">
+    <div className="customer-container">
       {/* Header */}
-      <div className="custmgmt-header">
-      <div className="custmgmt-header-left">
-        <button 
-          className="custmgmt-back-btn" 
-          onClick={() => navigate(-1)} // go back to previous page
-        >
-          <span className="custmgmt-back-arrow">‹</span>
-        </button>
-        <h1 className="custmgmt-title">Customers</h1>
+      <div className="header">
+        <div className="header-left">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            <span className="back-arrow">‹</span>
+          </button>
+          <h1 className="title">Customers</h1>
+        </div>
+        <Link to="/createCustomerForm">
+          <button className="create-btn-customer">Create</button>
+        </Link>
       </div>
 
-      <Link to="/createCustomerForm">
-        <button className="custmgmt-create-btn">Create</button>
-      </Link>
-    </div>
-      {/* /createCustomerForm */}
-
       {/* Filter Dropdown */}
-      <div className="custmgmt-filter-section">
-        <div className="custmgmt-dropdown">
+      <div className="filter-section">
+        <div className="dropdown">
           <button 
-            className="custmgmt-dropdown-btn"
+            className="dropdown-btn"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             {filter}
-            <span className="custmgmt-dropdown-arrow">▼</span>
+            <span className="dropdown-arrow">▼</span>
           </button>
           {dropdownOpen && (
-            <div className="custmgmt-dropdown-menu">
+            <div className="dropdown-menu">
               <div 
-                className={`custmgmt-dropdown-item ${filter === 'All Customers' ? 'custmgmt-active' : ''}`}
+                className={`dropdown-item ${filter === 'All Customers' ? 'active' : ''}`}
                 onClick={() => handleFilterSelect('All Customers')}
               >
                 All Customers
               </div>
               <div 
-                className={`custmgmt-dropdown-item ${filter === 'Active Customers' ? 'custmgmt-active' : ''}`}
+                className={`dropdown-item ${filter === 'Active Customers' ? 'active' : ''}`}
                 onClick={() => handleFilterSelect('Active Customers')}
               >
                 Active Customers
               </div>
               <div 
-                className={`custmgmt-dropdown-item ${filter === 'Inactive Customers' ? 'custmgmt-active' : ''}`}
+                className={`dropdown-item ${filter === 'Inactive Customers' ? 'active' : ''}`}
                 onClick={() => handleFilterSelect('Inactive Customers')}
               >
                 Inactive Customers
               </div>
               <div 
-                className={`custmgmt-dropdown-item ${filter === 'Duplicate Customers' ? 'custmgmt-active' : ''}`}
+                className={`dropdown-item ${filter === 'Duplicate Customers' ? 'active' : ''}`}
                 onClick={() => handleFilterSelect('Duplicate Customers')}
               >
                 Duplicate Customers
@@ -132,86 +128,84 @@ const DisplayCustomer = () => {
         </div>
       </div>
 
-      {/* Action Bar - Always visible */}
-      <div className="custmgmt-action-bar">
-        <div className="custmgmt-action-buttons">
+      {/* Action Bar - Only visible when customers are selected */}
+      {selectedCustomers.length > 0 && (
+        <div className="action-bar">
+          <div className="action-buttons">
+            <button 
+              className="action-btn mark-active"
+              onClick={() => handleMarkStatus('Active')}
+            >
+              Mark as Active
+            </button>
+            <button 
+              className="action-btn mark-inactive"
+              onClick={() => handleMarkStatus('Inactive')}
+            >
+              Mark as Inactive
+            </button>
+            <button 
+              className="action-btn delete"
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          </div>
           <button 
-            className="custmgmt-action-btn custmgmt-mark-active"
-            onClick={() => handleMarkStatus('Active')}
-            disabled={selectedCustomers.length === 0}
+            className="close-btn"
+            onClick={() => setSelectedCustomers([])}
           >
-            Mark as Active
-          </button>
-          <button 
-            className="custmgmt-action-btn custmgmt-mark-inactive"
-            onClick={() => handleMarkStatus('Inactive')}
-            disabled={selectedCustomers.length === 0}
-          >
-            Mark as Inactive
-          </button>
-          <button 
-            className="custmgmt-action-btn custmgmt-delete"
-            onClick={handleDelete}
-            disabled={selectedCustomers.length === 0}
-          >
-            Delete
+            ✕
           </button>
         </div>
-        <button 
-          className="custmgmt-close-btn"
-          onClick={() => setSelectedCustomers([])}
-          disabled={selectedCustomers.length === 0}
-        >
-          ✕
-        </button>
-      </div>
+      )}
 
       {/* Table */}
-      <div className="custmgmt-table-wrapper">
-        <table className="custmgmt-table">
+      <div className="table-wrapper">
+        <table className="table">
           <thead>
-            <tr className="custmgmt-table-header">
-              <th className="custmgmt-checkbox-col">
+            <tr className="table-header">
+              <th className="checkbox-col">
                 <input 
                   type="checkbox" 
-                  className="custmgmt-checkbox"
+                  className="checkbox"
                   onChange={handleSelectAll}
                   checked={selectedCustomers.length === customers.length && customers.length > 0}
                 />
               </th>
-              <th className="custmgmt-th">Customer ID</th>
-              <th className="custmgmt-th">Customer Name</th>
-              <th className="custmgmt-th">Company Name</th>
-              <th className="custmgmt-th">Email</th>
-              <th className="custmgmt-th">Work Phone</th>
-              <th className="custmgmt-th">Receivables</th>
-              <th className="custmgmt-th">Life cycle Status</th>
+              <th className="th">Customer ID</th>
+              <th className="th">Customer Name</th>
+              <th className="th">Company Name</th>
+              <th className="th">Email</th>
+              <th className="th">Work Phone</th>
+              <th className="th">Receivables</th>
+              <th className="th">Life cycle Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.map((customer) => (
-              <tr key={customer.id} className="custmgmt-table-row">
-                <td className="custmgmt-checkbox-col">
+              <tr key={customer.id} className="table-row">
+                <td className="checkbox-col">
                   <input 
                     type="checkbox" 
-                    className="custmgmt-checkbox"
+                    className="checkbox"
                     checked={selectedCustomers.includes(customer.id)}
                     onChange={() => handleSelectCustomer(customer.id)}
                   />
                 </td>
-                <td className="custmgmt-td">{customer.id}</td>
-                <td className="custmgmt-td">{customer.name}</td>
-                <td className="custmgmt-td custmgmt-company-cell">
+                <td className="td">{customer.id}</td>
+                <td className="td">{customer.name}</td>
+                <td className="td company-cell">
                   {customer.company}
-                  <div className="custmgmt-tooltip">
+                  <div className="tooltip">
                     Should Display company name if Customer is Business Customer
                   </div>
                 </td>
-                <td className="custmgmt-td">{customer.email}</td>
-                <td className="custmgmt-td">{customer.phone}</td>
-                <td className="custmgmt-td">{customer.receivables}</td>
-                <td className="custmgmt-td">
-                  <span className={`custmgmt-status ${customer.status.toLowerCase()}`}>
+                <td className="td">{customer.email}</td>
+                <td className="td">{customer.phone}</td>
+                <td className="td">{customer.receivables}</td>
+                <td className="td">
+                  <span className={`status ${customer.status.toLowerCase()}`}>
                     {customer.status}
                   </span>
                 </td>

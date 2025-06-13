@@ -1,17 +1,14 @@
-/* CustomerForm.css - Unique prefixed classes to avoid conflicts */
-
-.cfm-container {
+/* Base Styles */
+.form-container {
   margin: 0 auto;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  max-height: 100vh;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.cfm-header {
+/* Header Section */
+.form-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -21,20 +18,21 @@
   flex-shrink: 0;
 }
 
-.cfm-title {
+.form-title {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: #212529;
 }
 
-.cfm-radio-group {
+/* Radio Button Group */
+.radio-group {
   display: flex;
   gap: 24px;
   align-items: center;
 }
 
-.cfm-radio-label {
+.radio-label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -43,11 +41,11 @@
   color: #495057;
 }
 
-.cfm-radio-input {
+.radio-input {
   display: none;
 }
 
-.cfm-radio-custom {
+.radio-custom {
   width: 16px;
   height: 16px;
   border: 2px solid #6c757d;
@@ -56,12 +54,12 @@
   position: relative;
 }
 
-.cfm-radio-selected {
+.radio-selected {
   border-color: #dc3545;
   background: #dc3545;
 }
 
-.cfm-radio-selected::after {
+.radio-selected::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -73,258 +71,302 @@
   border-radius: 50%;
 }
 
-.cfm-save-btn {
-  background: #007bff;
-  color: white;
-  border: none;
+/* Buttons */
+.btn {
   padding: 8px 16px;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.cfm-save-btn:hover {
-  background: #0056b3;
+.btn-primary {
+display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  gap: 10px;
+  margin: 2px;
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #000000ef;
+  background-color: transparent;
+  border: 2px solid #000000ef;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.cfm-form-section {
+.btn-primary:hover {
+  background-color: #0000FF;
+  color: #fff;
+  transform: scale(1.05);
+  border: 1px solid #0000FF;
+}
+
+.btn-secondary {
+  background: #343a40;
+  color: white;
+}
+
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-light {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-link {
+  background: none;
+  color: #007bff;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-link:hover {
+  color: #0056b3;
+}
+
+/* Phone Input Styles */
+.phone-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.phone-type-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.phone-icon {
+  margin-right: 6px;
+}
+
+.phone-number-input {
+  width: 100%;
+  max-width: 300px;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Form Elements */
+.form-section {
   padding: 16px 24px;
   background: white;
   flex-shrink: 0;
 }
 
-.cfm-form-row {
+.form-row {
   display: flex;
-  align-items: center; /* Changed from flex-start to center */
-  margin-bottom: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
   gap: 16px;
 }
 
-.cfm-label {
-  min-width: 140px;
+.form-label {
+  min-width: 150px;
   font-size: 14px;
   color: #495057;
-  /* Removed padding-top: 8px; */
-  text-align: right;
-  white-space: nowrap; /* Prevent label text from wrapping */
+  text-align: left;
+  padding-top: 8px;
 }
 
-.cfm-input-group {
+/* Form Inputs - Consistent Sizing */
+.form-input,
+.form-select,
+.address-input {
+  width: 200px;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 36px;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.address-input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.input-group {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
   flex: 1;
 }
 
-.cfm-input {
-  padding: 6px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  background: white;
-  height: 32px;
-  box-sizing: border-box;
-}
-
-.cfm-input-company,
-.cfm-input-email,
-.cfm-input-website,
-.cfm-input-lifecycle {
+.input-group .form-input {
   width: 200px;
 }
 
-.cfm-input-first,
-.cfm-input-middle,
-.cfm-input-last {
-  width: 100px;
+.input-full {
+  width: 100%;
+  max-width: 400px;
 }
 
-.cfm-select {
-  padding: 6px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  background: white;
-  height: 32px;
-  box-sizing: border-box;
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
 }
 
-.cfm-select-salutation {
-  width: 100px;
-  background: #343a40;
-  color: white;
-}
-
-.cfm-select-partner {
-  width: 200px;
-  background: #343a40;
-  color: white;
-}
-
-.cfm-individual-only {
-  font-size: 12px;
-  color: #6c757d;
-  margin-left: 8px;
-}
-
-.cfm-help-text {
-  font-size: 12px;
-  color: #6c757d;
-  margin-left: 8px;
-}
-
-.cfm-phone-group {
-  display: flex;
-  gap: 8px;
-}
-
-.cfm-phone-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background: #343a40;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-  height: 32px;
-  box-sizing: border-box;
-}
-
-.cfm-phone-work {
-  background: #17a2b8;
-}
-
-.cfm-phone-mobile {
-  background: #6c757d;
-}
-
-.cfm-phone-icon {
-  font-size: 12px;
-}
-
-.cfm-tabs {
+/* Tabs */
+.tabs {
   display: flex;
   background: white;
   border-bottom: 1px solid #e9ecef;
   flex-shrink: 0;
+  overflow-x: auto;
 }
 
-.cfm-tab {
+.tab {
   padding: 12px 24px;
   border: none;
-  background: none; /* Ensure no background */
+  background: none;
   font-size: 14px;
-  color: #212529; /* Changed from #495057 to darker black */
+  color: #495057;
   cursor: pointer;
   border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
-.cfm-tab-active {
-  color: #212529; /* Changed from #007bff to keep black */
-  border-bottom-color: #007bff; /* Keep blue underline */
-  background: none; /* Remove background color */
-  font-weight: 600; /* Optional: make active tab text bolder */
+.tab:hover {
+  color: #212529;
 }
 
-.cfm-address-section {
+.tab-active {
+  color: #212529;
+  border-bottom-color: #007bff;
+  font-weight: 600;
+}
+
+/* Address Section */
+.address-section {
   background: white;
   padding: 16px 24px;
   flex: 1;
-  overflow: auto;
 }
 
-.cfm-address-container {
+.address-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
-.cfm-address-column {
+.address-column {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.cfm-address-title {
+.section-title {
   font-size: 16px;
   font-weight: 600;
   color: #212529;
   margin: 0 0 12px 0;
 }
 
-.cfm-shipping-header {
+.section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
 
-.cfm-copy-btn {
-  background: none;
-  border: none;
-  color: #007bff;
-  font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.cfm-copy-btn:hover {
-  color: #0056b3;
-}
-
-.cfm-address-row {
+.address-row {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.cfm-address-label {
+.address-label {
   min-width: 80px;
   font-size: 14px;
   color: #495057;
   text-align: left;
 }
 
-.cfm-address-input {
+.address-input {
   flex: 1;
-  padding: 6px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  background: white; /* Changed from #343a40 */
-  color: #212529; /* Changed from white */
-  height: 32px;
-  box-sizing: border-box;
+  max-width: 300px;
 }
 
-.cfm-address-input::placeholder {
-  color: #6c757d; /* Changed from #adb5bd */
-}
-
-.cfm-footer {
-  padding: 12px 24px;
-  background: white;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  flex-shrink: 0;
-}
-
-.cfm-cancel-btn {
-  background: none;
-  border: 1px solid #6c757d;
+.address-input::placeholder {
   color: #6c757d;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
 }
 
-.cfm-cancel-btn:hover {
-  background: #6c757d;
-  color: white;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .radio-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .address-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .input-group {
+    width: 100%;
+  }
+  
+  .input-group .form-input,
+  .form-input,
+  .form-select,
+  .address-input {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .form-label,
+  .address-label {
+    min-width: auto;
+    margin-bottom: 4px;
+  }
+  
+  .phone-type-selector {
+    width: 100%;
+  }
+  
+  .phone-type-selector .btn {
+    flex: 1;
+  }
 }

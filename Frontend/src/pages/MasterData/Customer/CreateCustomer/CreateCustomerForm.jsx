@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaPhone, FaMobile } from 'react-icons/fa';
 import './CreateCustomerForm.css';
 import ContactPersonForm from './CreateCustomerTabs/ContactPersons';
 import BankForm from './CreateCustomerTabs/BankDetails';
@@ -8,152 +9,225 @@ import SalesShippingDetails from './CreateCustomerTabs/SalesShippingDetails';
 const CreateCustomerForm = () => {
   const [customerType, setCustomerType] = useState('business');
   const [activeTab, setActiveTab] = useState('address');
+  const [phoneType, setPhoneType] = useState('work');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [billingAddress, setBillingAddress] = useState({
+    street1: '',
+    street2: '',
+    city: '',
+    state: '',
+    region: '',
+    country: '',
+    pinCode: ''
+  });
+  const [shippingAddress, setShippingAddress] = useState({
+    street1: '',
+    street2: '',
+    city: '',
+    state: '',
+    region: '',
+    country: '',
+    pinCode: ''
+  });
+
+  const handleBillingChange = (e) => {
+    const { name, value } = e.target;
+    setBillingAddress(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleShippingChange = (e) => {
+    const { name, value } = e.target;
+    setShippingAddress(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const copyBillingToShipping = () => {
+    setShippingAddress({ ...billingAddress });
+  };
+
+  const handlePhoneChange = (type) => {
+    setPhoneType(type);
+    setPhoneNumber(''); // Clear number when switching type
+  };
+
+  const validatePhoneNumber = (number) => {
+    const phoneRegex = /^[0-9]{10,15}$/;
+    return phoneRegex.test(number);
+  };
 
   return (
-    <div className="cfm-container">
-      <div className="cfm-header">
-        <h2 className="cfm-title">Create new Customer</h2>
-        <div className="cfm-radio-group">
-          <label className="cfm-radio-label">
+    <div className="form-container">
+      <div className="form-header">
+        <h2 className="form-title">Create new Customer</h2>
+        <div className="radio-group">
+          <label className="radio-label">
             <input
               type="radio"
               name="customerType"
               value="individual"
               checked={customerType === 'individual'}
               onChange={(e) => setCustomerType(e.target.value)}
-              className="cfm-radio-input"
+              className="radio-input"
             />
-            <span className="cfm-radio-custom"></span>
+            <span className={`radio-custom ${customerType === 'individual' ? 'radio-selected' : ''}`}></span>
             Individual
           </label>
-          <label className="cfm-radio-label">
+          <label className="radio-label">
             <input
               type="radio"
               name="customerType"
               value="business"
               checked={customerType === 'business'}
               onChange={(e) => setCustomerType(e.target.value)}
-              className="cfm-radio-input"
+              className="radio-input"
             />
-            <span className="cfm-radio-custom cfm-radio-selected"></span>
+            <span className={`radio-custom ${customerType === 'business' ? 'radio-selected' : ''}`}></span>
             Business
           </label>
         </div>
-        <button className="cfm-save-btn">Save</button>
+        <button className="btn btn-primary">Save</button>
       </div>
 
-      <div className="cfm-form-section">
-        {/* Primary Contact - Only show for Business */}
-{customerType === 'business' && (
-  <div className="cfm-form-row">
-    <label className="cfm-label">Primary Contact</label>
-    <div className="cfm-input-group">
-      <select className="cfm-select cfm-select-salutation">
-        <option>salutation</option>
-      </select>
-      <input type="text" placeholder="First name" className="cfm-input cfm-input-first" />
-      <input type="text" placeholder="Middle name" className="cfm-input cfm-input-middle" />
-      <input type="text" placeholder="Last name" className="cfm-input cfm-input-last" />
-      <span className="cfm-individual-only">Individual only</span>
-    </div>
-  </div>
-)}
+      <div className="form-section">
+        {/* Primary Contact - Only show for Individual */}
+        {customerType === 'individual' && (
+          <div className="form-row">
+            <label className="form-label">Primary Contact</label>
+            <div className="input-group">
+              <select className="form-select">
+                <option>Salutation</option>
+                <option>Mr.</option>
+                <option>Mrs.</option>
+                <option>Ms.</option>
+                <option>Dr.</option>
+              </select>
+              <input type="text" placeholder="First name" className="form-input" />
+              <input type="text" placeholder="Middle name" className="form-input" />
+              <input type="text" placeholder="Last name" className="form-input" />
+            </div>
+          </div>
+        )}
 
-{/* Company name - Only show for Business */}
-{customerType === 'business' && (
-  <div className="cfm-form-row">
-    <label className="cfm-label">Company name</label>
-    <div className="cfm-input-group">
-      <input type="text" className="cfm-input cfm-input-company" />
-      <span className="cfm-help-text">Company Name should be available if supplier is not individual</span>
-    </div>
-  </div>
-)}
+        {/* Company name - Only show for Business */}
+        {customerType === 'business' && (
+          <div className="form-row">
+            <label className="form-label">Company name</label>
+            <div className="input-group">
+              <input type="text" className="form-input input-full" placeholder="Enter company name" />
+            </div>
+          </div>
+        )}
 
-{/* Website - Only show for Business */}
-{customerType === 'business' && (
-  <div className="cfm-form-row">
-    <label className="cfm-label">Website</label>
-    <div className="cfm-input-group">
-      <input type="text" className="cfm-input cfm-input-website" />
-      <span className="cfm-help-text">for individual there is no website only applicable for business supplier</span>
-    </div>
-  </div>
-)}
+        {/* Website - Only show for Business */}
+        {customerType === 'business' && (
+          <div className="form-row">
+            <label className="form-label">Website</label>
+            <div className="input-group">
+              <input type="text" className="form-input input-full" placeholder="https://example.com" />
+            </div>
+          </div>
+        )}
 
-        <div className="cfm-form-row">
-          <label className="cfm-label">Email Address</label>
-          <input type="email" className="cfm-input cfm-input-email" />
-        </div>
-
-        <div className="cfm-form-row">
-          <label className="cfm-label">Phone</label>
-          <div className="cfm-phone-group">
-            <button className="cfm-phone-btn cfm-phone-work">
-              <span className="cfm-phone-icon">👤</span>
-              work
-            </button>
-            <button className="cfm-phone-btn cfm-phone-mobile">
-              <span className="cfm-phone-icon">📱</span>
-              Mobile
-            </button>
+        <div className="form-row">
+          <label className="form-label">Email Address</label>
+          <div className="input-group">
+            <input type="email" className="form-input input-full" placeholder="user@example.com" />
           </div>
         </div>
 
-        <div className="cfm-form-row">
-          <label className="cfm-label">Website</label>
-          <div className="cfm-input-group">
-            <input type="text" className="cfm-input cfm-input-website" />
-            <span className="cfm-help-text">for individual there is no website only applicable for business supplier</span>
+        <div className="form-row">
+          <label className="form-label">Phone</label>
+          <div className="input-group">
+            <div className="phone-input-container">
+              <div className="phone-type-selector">
+                <button 
+                  className={`btn ${phoneType === 'work' ? 'btn-info' : 'btn-light'}`}
+                  onClick={() => handlePhoneChange('work')}
+                >
+                  <FaPhone className="phone-icon" />
+                  Work
+                </button>
+                <button 
+                  className={`btn ${phoneType === 'mobile' ? 'btn-info' : 'btn-light'}`}
+                  onClick={() => handlePhoneChange('mobile')}
+                >
+                  <FaMobile className="phone-icon" />
+                  Mobile
+                </button>
+              </div>
+              <input
+                type="tel"
+                className="form-input phone-number-input"
+                placeholder={phoneType === 'work' ? 'Work phone number' : 'Mobile number'}
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                pattern="[0-9]{10,15}"
+                required
+              />
+              {phoneNumber && !validatePhoneNumber(phoneNumber) && (
+                <span className="error-message">Please enter a valid phone number (10-15 digits)</span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="cfm-form-row">
-          <label className="cfm-label">Lifecycle status</label>
-          <input type="text" className="cfm-input cfm-input-lifecycle" />
+        <div className="form-row">
+          <label className="form-label">Lifecycle status</label>
+          <select className="form-select">
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
         </div>
 
-        <div className="cfm-form-row">
-          <label className="cfm-label">Partner Classification</label>
-          <select className="cfm-select cfm-select-partner">
+        <div className="form-row">
+          <label className="form-label">Partner Classification</label>
+          <select className="form-select">
             <option>Select classification</option>
+            <option>Strategic</option>
+            <option>Standard</option>
+            <option>Premium</option>
           </select>
         </div>
       </div>
 
-      <div className="cfm-tabs">
+      <div className="tabs">
         <button 
-          className={`cfm-tab ${activeTab === 'address' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'address' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('address')}
         >
           Address
         </button>
         <button 
-          className={`cfm-tab ${activeTab === 'contact' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'contact' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('contact')}
         >
           Contact persons
         </button>
         <button 
-          className={`cfm-tab ${activeTab === 'bank' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'bank' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('bank')}
         >
           Bank Details
         </button>
         <button 
-          className={`cfm-tab ${activeTab === 'accounting' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'accounting' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('accounting')}
         >
           Accounting Details
         </button>
         <button 
-          className={`cfm-tab ${activeTab === 'sales' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'sales' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('sales')}
         >
           Sales & Shipping Details
         </button>
         <button 
-          className={`cfm-tab ${activeTab === 'related' ? 'cfm-tab-active' : ''}`}
+          className={`tab ${activeTab === 'related' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('related')}
         >
           Related Parties
@@ -161,86 +235,184 @@ const CreateCustomerForm = () => {
       </div>
 
       {activeTab === 'address' && (
-        <div className="cfm-address-section">
-          <div className="cfm-address-container">
-            <div className="cfm-address-column">
-              <h3 className="cfm-address-title">Billing Address</h3>
+        <div className="address-section">
+          <div className="address-container">
+            <div className="address-column">
+              <h3 className="section-title">Billing Address</h3>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Street 1</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Street 1</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="street1"
+                  value={billingAddress.street1}
+                  onChange={handleBillingChange}
+                  placeholder="Enter street address"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Street 2</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Street 2</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="street2"
+                  value={billingAddress.street2}
+                  onChange={handleBillingChange}
+                  placeholder="Apt, suite, etc. (optional)"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">City</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">City</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="city"
+                  value={billingAddress.city}
+                  onChange={handleBillingChange}
+                  placeholder="Enter city"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">State</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">State</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="state"
+                  value={billingAddress.state}
+                  onChange={handleBillingChange}
+                  placeholder="Enter state"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Region</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Region</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="region"
+                  value={billingAddress.region}
+                  onChange={handleBillingChange}
+                  placeholder="Enter region"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Country</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Country</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="country"
+                  value={billingAddress.country}
+                  onChange={handleBillingChange}
+                  placeholder="Enter country"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">PIN Code</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">PIN Code</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="pinCode"
+                  value={billingAddress.pinCode}
+                  onChange={handleBillingChange}
+                  placeholder="Enter postal code"
+                />
               </div>
             </div>
 
-            <div className="cfm-address-column">
-              <div className="cfm-shipping-header">
-                <h3 className="cfm-address-title">Shipping Address</h3>
-                <button className="cfm-copy-btn">(Copy billing address) ↓</button>
+            <div className="address-column">
+              <div className="section-header">
+                <h3 className="section-title">Shipping Address</h3>
+                <button className="btn-link" onClick={copyBillingToShipping}>(Copy billing address) ↓</button>
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Street 1</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Street 1</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="street1"
+                  value={shippingAddress.street1}
+                  onChange={handleShippingChange}
+                  placeholder="Enter street address"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Street 2</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Street 2</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="street2"
+                  value={shippingAddress.street2}
+                  onChange={handleShippingChange}
+                  placeholder="Apt, suite, etc. (optional)"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">City</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">City</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="city"
+                  value={shippingAddress.city}
+                  onChange={handleShippingChange}
+                  placeholder="Enter city"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">State</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">State</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="state"
+                  value={shippingAddress.state}
+                  onChange={handleShippingChange}
+                  placeholder="Enter state"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Region</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Region</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="region"
+                  value={shippingAddress.region}
+                  onChange={handleShippingChange}
+                  placeholder="Enter region"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">Country</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">Country</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="country"
+                  value={shippingAddress.country}
+                  onChange={handleShippingChange}
+                  placeholder="Enter country"
+                />
               </div>
               
-              <div className="cfm-address-row">
-                <label className="cfm-address-label">PIN Code</label>
-                <input type="text" className="cfm-address-input" />
+              <div className="address-row">
+                <label className="address-label">PIN Code</label>
+                <input 
+                  type="text" 
+                  className="address-input" 
+                  name="pinCode"
+                  value={shippingAddress.pinCode}
+                  onChange={handleShippingChange}
+                  placeholder="Enter postal code"
+                />
               </div>
             </div>
           </div>
@@ -248,29 +420,28 @@ const CreateCustomerForm = () => {
       )}
 
       {activeTab === 'contact' && (
-        <div className="cfm-contact-section">
+        <div className="form-section">
           <ContactPersonForm />
         </div>
       )}
 
       {activeTab === 'bank' && (
-        <div className="cfm-bank-section">
+        <div className="form-section">
           <BankForm />
         </div>
       )}
 
       {activeTab === 'accounting' && (
-        <div className="cfm-accounting-section">
+        <div className="form-section">
           <AccountingDetails />
         </div>
-
       )}
-        {activeTab === 'sales' && (
-            <div className="cfm-sales-section">
-            <SalesShippingDetails />
-            </div>
-        )}
-     
+
+      {activeTab === 'sales' && (
+        <div className="form-section">
+          <SalesShippingDetails />
+        </div>
+      )}
     </div>
   );
 };
